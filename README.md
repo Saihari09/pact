@@ -56,6 +56,13 @@ exactly what you see, look for the closest match.
   appears on their screen with one-tap replies.
 - **Planning ahead.** Pick a day in the day row, or end a task with a day:
   `Gym 18:00 45m fri`.
+- **Profile.** Under Your profile you can add a one-line goal, up to four
+  focus areas, and how you like to be nudged. Buddies see these when they
+  open your plan.
+- **Progress.** Each person has a streak, a count for today and the last
+  seven days, and a four-week grid showing which days had tasks finished.
+- **Theme.** The sun/moon button switches between light and dark. Without a
+  choice, the site follows the device setting.
 
 ## Limits worth knowing
 
