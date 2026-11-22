@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isMember(gid) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/groups/$(gid)/members/$(request.auth.uid));
+    }
+    function isCreator(gid) {
+      return signedIn() &&
+        get(/databases/$(database)/documents/groups/$(gid)).data.createdBy == request.auth.uid;
+    }
+
+    // A circle. Its id is the invite code: whoever has the link can look it up and join.
+    match /groups/{gid} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 60;
+      allow update: if isCreator(gid)
+        && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if false;
+
+      // One document per person in the circle. You add and edit only yourself.
+      match /members/{uid} {
+        allow read: if signedIn() && (request.auth.uid == uid || isMember(gid));
+        allow create, update: if signedIn() && request.auth.uid == uid
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 40;
+        allow delete: if signedIn() && (request.auth.uid == uid || isCreator(gid));
+      }
+
+      // One document per person per day, id "<uid>_<YYYY-MM-DD>". Members read all, each writes only their own.
+      match /days/{docId} {
+        allow read: if isMember(gid);
+        allow create, update: if isMember(gid)
+          && request.resource.data.uid == request.auth.uid
+          && docId == request.auth.uid + '_' + request.resource.data.day
+          && request.resource.data.tasks is list
+          && request.resource.data.tasks.size() <= 40;
+        allow delete: if isMember(gid) && resource.data.uid == request.auth.uid;
+      }
+
+      // Nudges and cheers. Any member sends; only the person nudged can reply.
+      match /nudges/{nid} {
+        allow read: if isMember(gid);
+        allow create: if isMember(gid)
+          && request.resource.data.from == request.auth.uid
+          && request.resource.data.to is string
+          && request.resource.data.msg is string
+          && request.resource.data.msg.size() <= 140;
+        allow update: if isMember(gid)
+          && resource.data.to == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reply', 'repliedAt']);
+        allow delete: if isMember(gid)
+          && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+      }
+    }
+  }
+}
