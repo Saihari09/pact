@@ -52,8 +52,18 @@ exactly what you see, look for the closest match.
 - **Invite link.** The link contains the circle's code. Anyone who has the link
   and signs in can join, so share it privately. The person who started the
   circle can remove people under Your settings → People.
-- **Nudges.** Pick a person at the top, then Send a nudge or Send a cheer. It
-  appears on their screen with one-tap replies.
+- **Nudges and cheers.** Pick a person at the top, then Send a nudge or Send a
+  cheer. It appears on their screen with one-tap replies: a nudge asks how it
+  is going (On it, Stuck, On a break), a cheer can be thanked.
+- **Editing.** Press Edit on one of your tasks and retype it. The same
+  shorthand works as when adding: `Gym 18:00 45m fri` sets the time, the
+  length and the day.
+- **Comments.** Every task has a Comment button. Anyone in the circle can
+  write on it (up to 140 characters) and the task's owner gets an alert.
+  Comments are kept for as long as the task's day is in view, about four weeks.
+- **Circle calendar.** The Circle calendar tab shows one week of everyone's
+  tasks, coloured by person. Tap a name to hide or show that person, and tap a
+  task to open that person's plan.
 - **Planning ahead.** Pick a day in the day row, or end a task with a day:
   `Gym 18:00 45m fri`.
 - **Profile.** Under Your profile you can add a one-line goal, up to four

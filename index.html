@@ -214,6 +214,45 @@ span.check{cursor:default;border-color:var(--line)}
 .act:active{background:var(--bg2)}
 .empty{background:var(--card);border:2px dashed var(--control);border-radius:var(--r);padding:16px;color:var(--muted)}
 
+/* edit and comments */
+form.eform,form.cform{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+form.eform input,form.cform input{flex:1 1 180px;width:auto;min-height:44px;font-size:16px}
+.act.icon{min-width:44px;justify-content:center;padding:0}
+.thread{grid-column:1/-1;display:flex;flex-direction:column;gap:10px;border-top:2px solid var(--line);padding-top:12px;margin-top:6px}
+.cmt{display:flex;gap:8px;align-items:flex-start}
+.cmt .bubble{background:var(--bg2);border-radius:14px;padding:8px 12px;min-width:0;flex:0 1 auto;overflow-wrap:anywhere;font-size:15px}
+.cmt .by{font-weight:800;font-size:13px}
+.cmt time{font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* view switch and circle calendar */
+.tabs{display:inline-flex;gap:4px;padding:4px;background:var(--bg2);border-radius:18px;align-self:flex-start}
+.tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:14px;border:0;background:transparent;color:var(--ink);font:800 15px/1 var(--body);cursor:pointer;transition:background var(--base) ease}
+.tab[aria-pressed="true"]{background:var(--card);box-shadow:0 2px 0 var(--edge)}
+.cal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+@media (min-width:900px){.cal-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}}
+.cal-day{background:var(--bg2);border-radius:16px;padding:10px 8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+@media (min-width:900px){.cal-day{min-height:180px}}
+@media (max-width:899px){.cal-day:has(.cal-none){flex-direction:row;justify-content:space-between;align-items:center}}
+.cal-day.today{outline:2px solid var(--ink);outline-offset:1px}
+.cal-day.off{background:transparent;border:2px dashed var(--line)}
+.cal-day h3{font:700 14px/1.2 var(--body);display:flex;justify-content:space-between;gap:6px;padding:0 2px}
+.cal-day h3 span{color:var(--muted);font-weight:600}
+.cal-ev{display:flex;gap:6px;align-items:flex-start;text-align:left;border:0;border-radius:12px;padding:6px 8px;min-height:44px;width:100%;font:700 13px/1.3 var(--body);color:#0F172A;cursor:pointer;overflow-wrap:anywhere;transition:transform var(--fast) ease-out}
+.cal-ev:active{transform:scale(.97)}
+.cal-ev .who{font:700 11px/1 var(--display);background:rgba(15,23,42,.14);border-radius:6px;padding:3px 4px;flex:none;letter-spacing:.02em}
+.cal-ev .ev{display:flex;flex-direction:column;min-width:0}
+.cal-ev small{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+.cal-ev.done .ev b{text-decoration:line-through;font-weight:600}
+.cal-ev b{font-weight:700}
+.cal-none{font-size:13px;color:var(--muted);padding:0 2px}
+.legend-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:4px 14px 4px 6px;border-radius:999px;border:2px solid var(--control);background:var(--card);color:var(--ink);font:700 15px/1 var(--body);cursor:pointer}
+.legend-btn[aria-pressed="false"]{border-style:dashed;color:var(--muted);text-decoration:line-through}
+.btn.cheer{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.banner.cheer{background:var(--accent-soft);color:var(--on-accent-soft)}
+.banner.cheer .btn{background:var(--accent);color:var(--on-accent);box-shadow:0 4px 0 var(--edge)}
+
 /* feed */
 .feed{display:flex;flex-direction:column;gap:10px}
 .feed li{display:flex;gap:10px;align-items:flex-start;font-size:15px;overflow-wrap:anywhere}
@@ -344,7 +383,26 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
       <p class="notice" id="notice" hidden></p>
       <section class="banner" id="banner" hidden aria-live="assertive"></section>
 
-      <div class="cols">
+      <div class="tabs" role="group" aria-label="Choose a view">
+        <button class="tab" id="tabPlan" type="button" aria-pressed="true" data-ic="check">Plan</button>
+        <button class="tab" id="tabCal" type="button" aria-pressed="false" data-ic="calendar">Circle calendar</button>
+      </div>
+
+      <section class="panel" id="calendar" aria-label="Circle calendar" hidden>
+        <div class="cal-head">
+          <h2 id="calTitle">This week</h2>
+          <div class="cal-nav">
+            <button class="iconbtn" id="calPrev" type="button" aria-label="Previous week" data-ic="left"></button>
+            <button class="btn small" id="calNow" type="button">This week</button>
+            <button class="iconbtn" id="calNext" type="button" aria-label="Next week" data-ic="right"></button>
+          </div>
+        </div>
+        <div class="chips" id="calLegend" role="group" aria-label="Show or hide people"></div>
+        <div class="cal-grid" id="calGrid"></div>
+        <p class="muted">Everyone's plans in one place, from four weeks back to a week ahead. Tap a task to open that person's plan.</p>
+      </section>
+
+      <div class="cols" id="planView">
         <div class="main">
           <section class="panel profile" id="profile" hidden></section>
           <section class="now" id="now" aria-live="polite"></section>
@@ -372,14 +430,14 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
         <aside class="side">
           <section class="panel" id="buddy" hidden>
             <h2 id="buddyTitle">Check up on them</h2>
-            <p class="muted" id="buddyHint">A nudge pops up on their screen with quick replies: On it, Stuck, or On a break.</p>
+            <p class="muted" id="buddyHint"></p>
             <div class="field">
               <label for="nudgeMsg">Optional note</label>
               <input type="text" id="nudgeMsg" maxlength="140" placeholder="How's the report going?">
             </div>
             <div class="row">
               <button class="btn primary" id="nudgeBtn" type="button" data-ic="bell">Send a nudge</button>
-              <button class="btn" id="cheerBtn" type="button" data-ic="heart">Send a cheer</button>
+              <button class="btn cheer" id="cheerBtn" type="button" data-ic="heart">Send a cheer</button>
             </div>
             <p class="muted" id="buddyStatus" aria-live="polite"></p>
             <p class="muted"><a id="buddyCal" target="_blank" rel="noopener" href="#">Add a daily "check on my buddies" reminder to my calendar</a></p>
@@ -498,6 +556,10 @@ const ICONS={
   clock:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
   trash:"M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6",
   arrow:"M5 12h14M13 6l6 6-6 6",
+  left:"M15 18l-6-6 6-6",
+  right:"M9 18l6-6-6-6",
+  chat:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  edit:"M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z",
   target:"M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
   users:"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
 };
@@ -545,13 +607,23 @@ paintTheme();
 let auth=null,db=null,me=null,gid="",group=null;
 let members={};              // uid -> {name, goal, areas, style}
 let days={};                 // "uid_day" -> day doc
-let nudges=[];               // today's, newest first
+let nudges=[];               // today's nudges and cheers, newest first
+let comments={};             // "ownerUid|taskId" -> comments on that task, oldest first
 let view="";                 // uid whose plan is on screen
 let sel=today;               // day shown in the plan
+let mode="plan";             // "plan" or "calendar"
+let calOff=0;                // week shown in the circle calendar, 0 = this week
+const calHide=new Set();     // uids hidden in the circle calendar
+let edit=null;               // {id, day} of the task being edited
+const openThreads=new Set(); // "ownerUid|taskId" of comment threads that are open
+const drafts={};             // text typed into edit and comment boxes, kept across re-renders
+let lastCommentSeen=Date.now();
 let ready=false,unsubs=[];
 const q={};
 let selfPrompt=false,lastPrompt=Date.now(),lastNudgeSeen=Date.now(),freshBanner=false,audio=null,toastTimer=0;
-const REPLIES={on:"On it",stuck:"Stuck, could use help",brk:"On a break"};
+const NUDGE_REPLIES={on:"On it",stuck:"Stuck, could use help",brk:"On a break"};
+const CHEER_REPLIES={thanks:"Thanks!",needed:"Needed that",back:"Right back at you"};
+const REPLIES={...NUDGE_REPLIES,...CHEER_REPLIES};
 const AREAS=["Study","Work","Fitness","Health","Creative","Habits","Money","Mindset"];
 const STYLES={gentle:"gentle reminders",direct:"being direct",cheer:"mostly cheers"};
 const AVATAR_COLORS=["#FDBA74","#86EFAC","#93C5FD","#F9A8D4","#C4B5FD","#FDE047","#5EEAD4","#FCA5A5"];
@@ -567,13 +639,27 @@ function cleanMember(d){
   return {name:cleanName(x.name)||"Someone",
     goal:String(x.goal||"").replace(/\s+/g," ").trim().slice(0,80),
     areas:Array.isArray(x.areas)?AREAS.filter(a=>x.areas.includes(a)).slice(0,4):[],
-    style:STYLES[x.style]?x.style:""};
+    style:STYLES[x.style]?x.style:"",
+    joinedAt:Number(x.joinedAt)||0};
+}
+// One colour per person, handed out in the order people joined, so the first eight never share one.
+const joinOrder=()=>Object.keys(members).sort((a,b)=>(members[a].joinedAt-members[b].joinedAt)||a.localeCompare(b));
+function colorOf(uid){
+  let i=joinOrder().indexOf(uid);
+  if(i<0){i=0;for(const ch of String(uid))i=(i*31+ch.charCodeAt(0))>>>0;}
+  return AVATAR_COLORS[i%AVATAR_COLORS.length];
+}
+function initials(uid){
+  const parts=realName(uid).split(" ").filter(Boolean);
+  return ((parts[0]||"?")[0]+(parts.length>1?parts[parts.length-1][0]:"")).toUpperCase();
 }
 function avatar(uid,size){
-  let n=0;for(const ch of String(uid))n=(n*31+ch.charCodeAt(0))>>>0;
-  const parts=realName(uid).split(" ").filter(Boolean);
-  const ini=((parts[0]||"?")[0]+(parts.length>1?parts[parts.length-1][0]:"")).toUpperCase();
-  return h("span",{class:"avatar","aria-hidden":"true",style:"width:"+size+"px;height:"+size+"px;background:"+AVATAR_COLORS[n%AVATAR_COLORS.length]+";font-size:"+Math.round(size*.4)+"px"},ini);
+  return h("span",{class:"avatar","aria-hidden":"true",style:"width:"+size+"px;height:"+size+"px;background:"+colorOf(uid)+";font-size:"+Math.round(size*.4)+"px"},initials(uid));
+}
+const stamp=ts=>(dayKey(new Date(ts))===today?"":new Date(ts).toLocaleDateString(undefined,{day:"numeric",month:"short"})+" ")+hhmm(ts);
+function findTask(uid,id){
+  for(const k in days){if(days[k].uid!==uid)continue;const t=days[k].tasks.find(x=>x.id===id);if(t)return t;}
+  return null;
 }
 function toast(msg){const t=$("toast");t.hidden=true;t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},3200);}
 function celebrate(){
@@ -670,6 +756,34 @@ function moveTasks(from,to,ids){
   moving.forEach(t=>b.tasks.push({id:t.id,text:t.text,time:t.time,mins:t.mins,status:"todo",startedAt:0,doneAt:0}));
   saveDay(from);saveDay(to);
 }
+/* Editing reuses the quick-add wording: "Call the bank 14:30 20m fri" sets text, time, length and day. */
+function startEdit(t){
+  edit={id:t.id,day:sel};drafts["e:"+t.id]=t.text+(t.time?" "+t.time:"")+(t.mins?" "+t.mins+"m":"");
+  renderList();const i=$("edit-"+t.id);if(i){i.focus();i.select();}
+}
+const refocusEdit=id=>{const b=$("list").querySelector('[data-edit="'+id+'"]');if(b)b.focus();};
+function cancelEdit(){const id=edit&&edit.id;if(id)delete drafts["e:"+id];edit=null;renderList();if(id)refocusEdit(id);}
+function saveEdit(){
+  if(!edit)return;
+  const from=edit.day,id=edit.id,t=myDay(from).tasks.find(x=>x.id===id),p=parseTask(drafts["e:"+id]||"");
+  if(!t){cancelEdit();return;}
+  if(!p.text){toast("A task needs a few words.");return;}
+  t.text=p.text.slice(0,120);t.time=p.time;t.mins=p.mins;
+  delete drafts["e:"+id];edit=null;
+  saveDay(from);
+  if(p.day&&p.day!==from){moveTasks(from,p.day,[id]);toast("Moved to "+dayName(p.day,true)+".");}
+  else refocusEdit(id);
+}
+async function sendComment(owner,day,taskId){
+  const ck="c:"+owner+"|"+taskId,msg=String(drafts[ck]||"").replace(/\s+/g," ").trim().slice(0,140);
+  if(!msg)return;
+  drafts[ck]="";const i=$("cmt-"+taskId);if(i)i.value="";
+  try{await addDoc(col("nudges"),{day:day,from:me.uid,to:owner,kind:"comment",task:taskId,msg:msg,at:Date.now(),reply:""});}
+  catch(e){drafts[ck]=msg;renderList();note("That comment didn't send. Check your connection and try again.");}
+}
+async function deleteComment(id){
+  try{await deleteDoc(ref("nudges",id));}catch(e){note("Couldn't delete that comment. Try again.");}
+}
 async function saveProfile(patch){
   try{await updateDoc(ref("members",me.uid),patch);toast("Profile saved.");}
   catch(e){note("Couldn't save your profile. Try again.");}
@@ -683,7 +797,7 @@ function renderPeople(){
     const ts=tasksOf(uid,today),dn=doneOf(uid,today),doing=ts.find(t=>t.status==="doing");
     const state=!ts.length?"No plan yet":doing?"On: "+doing.text:dn===ts.length?"All done":dn?"Between tasks":"Not started";
     return h("button",{class:"pchip",type:"button","aria-pressed":uid===view?"true":"false",
-      onclick:()=>{view=uid;sel=today;$("buddyStatus").textContent="";render();}},
+      onclick:()=>{view=uid;sel=today;mode="plan";$("buddyStatus").textContent="";render();}},
       ring(ts.length?dn/ts.length:0,52,5,avatar(uid,38)),
       h("span",{class:"who"},h("b",null,nm(uid)),h("small",null,(ts.length?dn+" of "+ts.length+" · ":"")+state)));
   }));
@@ -762,13 +876,41 @@ function renderList(){
       h("span",{class:"pill "+t.status},t.status==="doing"?"In progress":done?"Done"+(t.doneAt?" "+hhmm(t.doneAt):""):isToday?"To do":"Planned"),
       t.time&&h("span",{class:"tag"},ic("clock",15),t.time),
       t.mins?h("span",{class:"tag"},t.mins+" min"):null);
-    const acts=own?h("div",{class:"acts"},
-      isToday&&t.status==="todo"&&h("button",{class:"act",type:"button",onclick:()=>setStatus(t.id,"doing")},ic("play",16),"Start"),
-      !done&&h("a",{class:"act",href:calLink(t.text,sel,t.time,t.mins),target:"_blank",rel:"noopener"},ic("calendar",16),"Add to calendar"),
-      !done&&sel!==shift(today,HORIZON)&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,shift(sel,1),[t.id])},ic("arrow",16),isToday?"Move to tomorrow":"Push a day later"),
-      !isToday&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,today,[t.id])},"Do it today"),
-      h("button",{class:"act danger",type:"button","aria-label":"Remove: "+t.text,onclick:()=>removeTask(sel,t.id)},ic("trash",16),"Remove")):null;
-    return h("li",{class:"task "+t.status},check,h("div",{class:"body"},h("span",{class:"text"},t.text),meta,acts));
+    const key=view+"|"+t.id,cs=comments[key]||[],open=openThreads.has(key);
+    if(own&&edit&&edit.id===t.id&&edit.day===sel){
+      const ek="e:"+t.id,inp=h("input",{type:"text",id:"edit-"+t.id,"data-key":ek,maxlength:"120",oninput:e=>{drafts[ek]=e.target.value;}});
+      inp.value=drafts[ek]||"";
+      return h("li",{class:"task "+t.status},check,h("div",{class:"body"},
+        h("form",{class:"eform",autocomplete:"off",onsubmit:e=>{e.preventDefault();saveEdit();}},
+          h("label",{class:"sr",for:"edit-"+t.id},"Edit task"),inp,
+          h("button",{class:"btn small primary",type:"submit"},"Save"),
+          h("button",{class:"btn small",type:"button",onclick:cancelEdit},"Cancel")),
+        h("p",{class:"hint"},"Change the words, the time or the length. Add a day like “fri” at the end to move it.")));
+    }
+    const acts=h("div",{class:"acts"},
+      own&&isToday&&t.status==="todo"&&h("button",{class:"act",type:"button",onclick:()=>setStatus(t.id,"doing")},ic("play",16),"Start"),
+      own&&h("button",{class:"act",type:"button","data-edit":t.id,"aria-label":"Edit: "+t.text,onclick:()=>startEdit(t)},ic("edit",16),"Edit"),
+      h("button",{class:"act",type:"button","aria-expanded":open?"true":"false",
+        onclick:()=>{if(open)openThreads.delete(key);else openThreads.add(key);renderList();if(!open){const i=$("list").querySelector('[data-key="c:'+key+'"]');if(i)i.focus();}}},
+        ic("chat",16),cs.length?cs.length+(cs.length===1?" comment":" comments"):"Comment"),
+      own&&!done&&h("a",{class:"act",href:calLink(t.text,sel,t.time,t.mins),target:"_blank",rel:"noopener"},ic("calendar",16),"Add to calendar"),
+      own&&!done&&sel!==shift(today,HORIZON)&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,shift(sel,1),[t.id])},ic("arrow",16),isToday?"Move to tomorrow":"Push a day later"),
+      own&&!isToday&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,today,[t.id])},"Do it today"),
+      own&&h("button",{class:"act danger",type:"button","aria-label":"Remove: "+t.text,onclick:()=>removeTask(sel,t.id)},ic("trash",16),"Remove"));
+    let thread=null;
+    if(open){
+      const ck="c:"+key,inp=h("input",{type:"text",id:"cmt-"+t.id,"data-key":ck,maxlength:"140",placeholder:own?"Reply or add a note":"Say something about this task",oninput:e=>{drafts[ck]=e.target.value;}});
+      inp.value=drafts[ck]||"";
+      thread=h("div",{class:"thread"},
+        cs.length?null:h("p",{class:"hint"},"No comments yet."),
+        ...cs.map(c=>h("div",{class:"cmt"},avatar(c.from,28),
+          h("div",{class:"bubble"},h("span",{class:"by"},nm(c.from)," ",h("time",null,stamp(c.at))),h("p",null,c.msg)),
+          c.from===me.uid&&h("button",{class:"act icon danger",type:"button","aria-label":"Delete your comment",onclick:()=>deleteComment(c.id)},ic("trash",16)))),
+        h("form",{class:"cform",autocomplete:"off",onsubmit:e=>{e.preventDefault();sendComment(view,sel,t.id);}},
+          h("label",{class:"sr",for:"cmt-"+t.id},"Comment on "+t.text),inp,
+          h("button",{class:"btn small primary",type:"submit"},"Send")));
+    }
+    return h("li",{class:"task "+t.status},check,h("div",{class:"body"},h("span",{class:"text"},t.text),meta,acts),thread);
   });
   if(!items.length&&ready){
     if(own){
@@ -780,7 +922,10 @@ function renderList(){
           h("button",{class:"chip",type:"button",onclick:fill("20 minute walk 17:30 fri")},"20 minute walk 17:30 fri"))));
     }else items.push(h("li",{class:"empty"},"Nothing planned for this day yet."));
   }
-  $("list").replaceChildren(...items);
+  // Rebuilding the list would drop the caret from an edit or comment box, so put it back afterwards.
+  const list=$("list"),act=document.activeElement,fkey=act&&list.contains(act)&&act.dataset?act.dataset.key:"",caret=fkey?act.selectionStart:0;
+  list.replaceChildren(...items);
+  if(fkey){const el=list.querySelector('[data-key="'+fkey+'"]');if(el){el.focus();try{el.setSelectionRange(caret,caret);}catch(e){}}}
   const total=tasks.length,doneN=tasks.filter(t=>t.status==="done").length;
   const fill={done:0,doing:1,todo:2};
   $("meter").replaceChildren(...(total?sorted.slice().sort((a,b)=>fill[a.status]-fill[b.status]):[{status:"todo"}]).map(t=>h("i",{class:t.status})));
@@ -835,20 +980,24 @@ function renderBanner(){
   const b=$("banner");
   const pending=nudges.filter(n=>n.to===me.uid&&!n.reply);
   const doing=tasksOf(me.uid,today).find(t=>t.status==="doing");
-  document.title=pending.length?"("+pending.length+") Nudge! · Pact":"Pact";
+  document.title=pending.length?"("+pending.length+") "+(pending[0].kind==="cheer"?"Cheer!":"Nudge!")+" · Pact":"Pact";
   if(pending.length){
-    const n=pending[0];
+    // A nudge asks "how is it going?", a cheer just needs a thank-you, so each kind has its own replies.
+    const n=pending[0],cheer=n.kind==="cheer",set=cheer?CHEER_REPLIES:NUDGE_REPLIES;
+    const same=pending.filter(p=>p.kind===n.kind);
     const answer=code=>async()=>{
       b.querySelectorAll("button").forEach(x=>x.disabled=true);
-      for(const p of pending){try{await updateDoc(ref("nudges",p.id),{reply:code,repliedAt:Date.now()});}catch(e){}}
-      lastPrompt=Date.now();saveDay(today);
+      for(const p of same){try{await updateDoc(ref("nudges",p.id),{reply:code,repliedAt:Date.now()});}catch(e){}}
+      lastPrompt=Date.now();if(!cheer)saveDay(today);
     };
     put(b,
-      h("strong",null,ic(n.kind==="cheer"?"heart":"bell",24),h("span",null,realName(n.from)+(n.kind==="cheer"?" is cheering you on":" is checking on you")+(n.msg?": “"+n.msg+"”":"."))),
+      h("strong",null,ic(cheer?"heart":"bell",24),h("span",null,realName(n.from)+(cheer?" is cheering you on":" is checking on you")+(n.msg?": “"+n.msg+"”":"."))),
       pending.length>1?h("span",null,"+"+(pending.length-1)+" more waiting"):null,
-      h("div",{class:"row"},...Object.keys(REPLIES).map(c=>h("button",{class:"btn",type:"button",onclick:answer(c)},REPLIES[c]))));
+      h("div",{class:"row"},...Object.keys(set).map(c=>h("button",{class:"btn",type:"button",onclick:answer(c)},set[c]))));
+    b.classList.toggle("cheer",cheer);
     b.hidden=false;
   }else if(selfPrompt){
+    b.classList.remove("cheer");
     const close=()=>{selfPrompt=false;lastPrompt=Date.now();renderBanner();};
     b.replaceChildren(h("strong",null,ic("clock",24),h("span",null,doing?"Still on “"+doing.text+"”?":"Quick check: what are you on right now?")),
       h("div",{class:"row"},
@@ -887,9 +1036,45 @@ function renderProfileForm(){
   }));
   if(focused){const b=box.querySelector('[data-area="'+focused+'"]');if(b)b.focus();}
 }
+/* Circle calendar: one week, Monday to Sunday, everyone's tasks coloured by person. */
+const weekdayIdx=(new Date().getDay()+6)%7;                  // 0 = Monday
+const calMin=Math.ceil((weekdayIdx-BACK-6)/7),calMax=Math.floor((HORIZON+weekdayIdx)/7);
+function renderCalendar(){
+  const start=shift(today,-weekdayIdx+calOff*7),first=shift(today,-BACK),last=shift(today,HORIZON);
+  const fmt=k=>keyDate(k).toLocaleDateString(undefined,{day:"numeric",month:"short"});
+  $("calTitle").textContent=(calOff===0?"This week":calOff===1?"Next week":calOff===-1?"Last week":"Week of")+" · "+fmt(start)+" – "+fmt(shift(start,6));
+  $("calPrev").disabled=calOff<=calMin;$("calNext").disabled=calOff>=calMax;$("calNow").disabled=calOff===0;
+  const ids=joinOrder();
+  $("calLegend").replaceChildren(...ids.map(uid=>h("button",{class:"legend-btn",type:"button","aria-pressed":calHide.has(uid)?"false":"true",
+    "aria-label":"Show "+realName(uid),
+    onclick:()=>{if(calHide.has(uid))calHide.delete(uid);else calHide.add(uid);renderCalendar();}},avatar(uid,32),nm(uid))));
+  const cols=[];
+  for(let i=0;i<7;i++){
+    const k=shift(start,i),d=keyDate(k),inRange=k>=first&&k<=last,evs=[];
+    if(inRange)ids.forEach((uid,rank)=>{if(!calHide.has(uid))tasksOf(uid,k).forEach(t=>evs.push({uid,rank,t}));});
+    evs.sort((a,b)=>(a.t.time||"99").localeCompare(b.t.time||"99")||a.rank-b.rank);
+    cols.push(h("div",{class:"cal-day"+(k===today?" today":"")+(inRange?"":" off")},
+      h("h3",null,d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate(),k===today?h("span",null,"Today"):null),
+      ...evs.map(e=>{
+        const done=e.t.status==="done",doing=e.t.status==="doing";
+        return h("button",{class:"cal-ev"+(done?" done":""),type:"button",style:"background:"+colorOf(e.uid),
+          "aria-label":realName(e.uid)+": "+e.t.text+(e.t.time?" at "+e.t.time:"")+(done?", done":doing?", in progress":""),
+          onclick:()=>{view=e.uid;sel=k>=today&&k<=last?k:today;mode="plan";render();}},
+          h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
+          h("span",{class:"ev"},
+            (e.t.time||done||doing)&&h("small",null,[e.t.time,done?"Done":doing?"In progress":""].filter(Boolean).join(" · ")),
+            h("b",null,e.t.text)));
+      }),
+      evs.length?null:h("p",{class:"cal-none"},inRange?"Nothing planned":"Not available")));
+  }
+  $("calGrid").replaceChildren(...cols);
+}
 function renderChrome(){
   $("dateLine").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
   $("title").textContent=(group&&group.name)||"Pact";
+  const cal=mode==="calendar";
+  $("planView").hidden=cal;$("calendar").hidden=!cal;
+  $("tabPlan").setAttribute("aria-pressed",cal?"false":"true");$("tabCal").setAttribute("aria-pressed",cal?"true":"false");
   const own=mine();
   $("addWrap").hidden=!(ready&&own);
   $("settings").hidden=!(ready&&own);
@@ -897,13 +1082,14 @@ function renderChrome(){
   if(!own){
     const m=members[view];
     $("buddyTitle").textContent="Check up on "+realName(view);
-    $("buddyHint").textContent=(m&&m.style?realName(view)+" prefers "+STYLES[m.style]+". ":"")+"A nudge pops up on their screen with quick replies: On it, Stuck, or On a break.";
+    $("buddyHint").textContent=(m&&m.style?realName(view)+" prefers "+STYLES[m.style]+". ":"")+"A nudge asks how it's going (On it, Stuck, On a break). A cheer is a pat on the back they can thank you for.";
     $("buddyCal").href=calLink("Check on my Pact buddies",today,"15:00",10,true);
   }
 }
 function render(){
   if(!members[view])view=me.uid;
   renderChrome();renderPeople();renderBanner();renderProfile();renderNow();renderCarry();renderDays();renderList();renderFeed();renderStats();renderRoster();
+  if(mode==="calendar")renderCalendar();
 }
 
 /* ---------- text copies ---------- */
@@ -934,8 +1120,11 @@ async function sendNudge(kind){
 }
 
 /* ---------- circle lifecycle ---------- */
-function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];$("streakBadge").hidden=true;}
-function goHome(msg){stopAll();gid="";group=null;store.set("pact.gid","");
+function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};edit=null;mode="plan";calOff=0;calHide.clear();openThreads.clear();$("streakBadge").hidden=true;}
+function goHome(msg){stopAll();
+  // Forget the saved circle only if it is the one that just failed; another tab may be using a different one.
+  if(store.get("pact.gid","")===gid)store.set("pact.gid","");
+  gid="";group=null;
   try{history.replaceState(null,"",location.pathname);}catch(e){}
   $("createName").value=cleanName(me&&me.displayName);
   const m=$("homeMsg");m.textContent=msg||"";m.hidden=!msg;show("home");}
@@ -974,15 +1163,33 @@ function start(){
     for(const k in days)if(busy(k))fresh[k]=days[k];
     days=fresh;ready=true;render();
   },fail));
-  unsubs.push(onSnapshot(query(col("nudges"),where("day","==",today)),snap=>{
-    const list=[];snap.forEach(d=>{const x=d.data()||{};list.push({id:d.id,from:String(x.from||""),to:String(x.to||""),kind:x.kind==="cheer"?"cheer":"nudge",msg:String(x.msg||"").slice(0,140),at:Number(x.at)||0,reply:String(x.reply||"")});});
+  // Nudges, cheers and task comments share one collection. Nudges and cheers matter for today only;
+  // a comment carries its task's day and id, and is shown for as long as that day is on screen.
+  unsubs.push(onSnapshot(query(col("nudges"),where("day",">=",shift(today,-BACK)),where("day","<=",shift(today,HORIZON))),snap=>{
+    const list=[],cm={};
+    snap.forEach(d=>{
+      const x=d.data()||{};
+      const n={id:d.id,day:String(x.day||""),from:String(x.from||""),to:String(x.to||""),kind:x.kind==="cheer"||x.kind==="comment"?x.kind:"nudge",
+        task:String(x.task||"").slice(0,24),msg:String(x.msg||"").slice(0,140),at:Number(x.at)||0,reply:String(x.reply||"")};
+      if(n.kind==="comment"){if(n.task&&n.msg)(cm[n.to+"|"+n.task]||(cm[n.to+"|"+n.task]=[])).push(n);}
+      else if(n.day===today)list.push(n);
+    });
+    for(const k in cm)cm[k].sort((a,b)=>a.at-b.at);
+    comments=cm;
     nudges=list.sort((a,b)=>b.at-a.at);
     const newest=nudges.find(n=>n.to===me.uid&&!n.reply);
     if(newest&&newest.at>lastNudgeSeen){lastNudgeSeen=newest.at;freshBanner=true;beep();
       popup(realName(newest.from)+(newest.kind==="cheer"?" is cheering you on":" is checking on you"),newest.msg);}
-    renderFeed();renderBanner();
+    let fresh=null;
+    for(const k in cm)for(const c of cm[k])if(c.to===me.uid&&c.from!==me.uid&&c.at>lastCommentSeen&&(!fresh||c.at>fresh.at))fresh=c;
+    if(fresh){
+      lastCommentSeen=fresh.at;beep();
+      const t=findTask(me.uid,fresh.task),where=t?" on “"+t.text.slice(0,40)+"”":"";
+      toast(realName(fresh.from)+" commented"+where+".");popup(realName(fresh.from)+" commented"+where,fresh.msg);
+    }
+    renderFeed();renderBanner();renderList();
   },fail));
-  getDocs(query(col("nudges"),where("day","<",shift(today,-14)))).then(async s=>{
+  getDocs(query(col("nudges"),where("day","<",shift(today,-BACK)))).then(async s=>{
     for(const d of s.docs){const x=d.data();if(x.to===me.uid||x.from===me.uid){try{await deleteDoc(d.ref);}catch(e){}}}
   }).catch(()=>{});
 }
@@ -1012,6 +1219,11 @@ function wire(){
   });
   $("inviteBtn").addEventListener("click",()=>copyText(location.origin+location.pathname+"?g="+gid,$("inviteStatus"),"Invite link copied. Anyone who opens it can join this circle, so send it only to your buddies."));
   $("addForm").addEventListener("submit",e=>{e.preventDefault();const i=$("addInput");if(!mine()||!i.value.trim())return;addTask(i.value);i.value="";i.focus();});
+  $("tabPlan").addEventListener("click",()=>{mode="plan";render();});
+  $("tabCal").addEventListener("click",()=>{mode="calendar";render();});
+  $("calPrev").addEventListener("click",()=>{calOff=Math.max(calMin,calOff-1);renderCalendar();});
+  $("calNext").addEventListener("click",()=>{calOff=Math.min(calMax,calOff+1);renderCalendar();});
+  $("calNow").addEventListener("click",()=>{calOff=0;renderCalendar();});
   $("nudgeBtn").addEventListener("click",()=>sendNudge("nudge"));
   $("cheerBtn").addEventListener("click",()=>sendNudge("cheer"));
   $("copyDay").addEventListener("click",()=>copyText("My plan\n"+planText(sel),$("shareStatus"),"Copied "+dayName(sel,true)+"."));
