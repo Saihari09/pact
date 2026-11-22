@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>Pact</title>
+<title>Pact · Pair &amp; Act</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='6' width='44' height='40' rx='14' fill='%23B45309'/%3E%3Crect x='2' y='2' width='44' height='40' rx='14' fill='%23FBBF24'/%3E%3Cg fill='none' stroke-width='5.6' stroke-linecap='round'%3E%3Cpath d='M21.5 30.5L33 16.5' stroke='%23291600'/%3E%3Cpath d='M14.6 23.6l6.9 6.9' stroke='%23fff'/%3E%3C/g%3E%3Ccircle cx='36.4' cy='10.6' r='3.5' fill='%23291600'/%3E%3Ccircle cx='11.6' cy='17' r='3.5' fill='%23fff'/%3E%3C/svg%3E">
 <script>try{var t=localStorage.getItem("pact.theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,8 +84,15 @@ code{background:var(--bg2);border-radius:6px;padding:1px 6px;font-size:.9em}
 
 /* top bar */
 .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px}
-.logo{display:inline-flex;align-items:center;gap:10px;font:700 22px/1 var(--display);color:var(--ink)}
-.logo-mark rect{fill:var(--hero)} .logo-mark path{fill:none;stroke:var(--on-hero);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.logo{display:inline-flex;align-items:center;gap:12px;color:var(--ink)}
+.logo-mark{flex:none}
+.logo-mark .lm-edge{fill:var(--hero-edge)} .logo-mark .lm-tile{fill:var(--hero)}
+.logo-mark path{fill:none;stroke-width:5.6;stroke-linecap:round}
+.logo-mark path.lm-a{stroke:#FFFFFF} .logo-mark circle.lm-a{fill:#FFFFFF}
+.logo-mark path.lm-b{stroke:#291600} .logo-mark circle.lm-b{fill:#291600}
+.logo-txt{display:flex;flex-direction:column;gap:4px}
+.logo-txt b{font:700 25px/1 var(--display);letter-spacing:.07em}
+.logo-txt small{font:800 12px/1 var(--body);letter-spacing:.08em;color:var(--muted)}
 .bar-actions{display:flex;align-items:center;gap:8px}
 .streak-badge{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;background:var(--amber-soft);color:var(--on-amber-soft);font:700 15px/1 var(--body);font-variant-numeric:tabular-nums}
 .iconbtn{width:44px;height:44px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);display:grid;place-items:center;cursor:pointer;transition:transform var(--fast) ease-out,background var(--base) ease}
@@ -114,9 +122,9 @@ form.add,form.stack{display:flex;gap:10px;flex-wrap:wrap}
 form.stack,.field{flex-direction:column;align-items:stretch}
 .field{display:flex;gap:6px}
 label,.label{font-weight:700;font-size:15px}
-input[type=text],select{font:400 17px/1.2 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--control);border-radius:14px;min-height:50px;padding:0 14px;min-width:0;width:100%;transition:border-color var(--base) ease,box-shadow var(--base) ease}
+input[type=text],input[type=number],input[type=time],input[type=date],select{font:400 17px/1.2 var(--body);color:var(--ink);background:var(--card);border:2px solid var(--control);border-radius:14px;min-height:50px;padding:0 14px;min-width:0;width:100%;transition:border-color var(--base) ease,box-shadow var(--base) ease}
 form.add input[type=text]{flex:1 1 220px;width:auto}
-input[type=text]:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--amber-soft);outline:none}
+input[type=text]:focus,input[type=number]:focus,input[type=time]:focus,input[type=date]:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--amber-soft);outline:none}
 .hint{font-size:14px;color:var(--muted)}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{font:600 15px/1.2 var(--body);min-height:44px;border:2px dashed var(--control);background:transparent;color:var(--ink);border-radius:999px;padding:8px 14px;cursor:pointer;text-align:left}
@@ -174,6 +182,12 @@ input[type=text]:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0
 .now .btn.ghost{background:transparent;color:var(--on-hero);border-color:var(--on-hero);box-shadow:none}
 .now .ring-bg{stroke:rgba(41,22,0,.18)} .now .ring-fg{stroke:var(--on-hero)}
 .now .ring-in{font:700 17px/1 var(--display);font-variant-numeric:tabular-nums}
+.now .ring-in .time{font-size:25px;letter-spacing:.01em}
+.now .ring-fg{transition:stroke-dashoffset 1s linear}
+.pomo{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:2px solid rgba(41,22,0,.16);padding-top:12px}
+.pomo .lbl{display:inline-flex;align-items:center;gap:6px;font:800 13px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;margin-right:4px}
+.now .btn.tbtn{min-height:44px;padding:0 14px;font-size:15px;border-radius:14px;background:rgba(41,22,0,.1);color:var(--on-hero);border-color:transparent;box-shadow:none}
+.now .btn.tbtn.on{border-color:var(--on-hero)}
 
 /* plan */
 .plan{display:flex;flex-direction:column;gap:12px}
@@ -217,6 +231,8 @@ span.check{cursor:default;border-color:var(--line)}
 /* edit and comments */
 form.eform,form.cform{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 form.eform input,form.cform input{flex:1 1 180px;width:auto;min-height:44px;font-size:16px}
+form.eform select{flex:0 0 auto;width:auto;min-height:44px;font-size:15px}
+form.add select{flex:0 0 auto;width:auto;font-size:16px}
 .act.icon{min-width:44px;justify-content:center;padding:0}
 .thread{grid-column:1/-1;display:flex;flex-direction:column;gap:10px;border-top:2px solid var(--line);padding-top:12px;margin-top:6px}
 .cmt{display:flex;gap:8px;align-items:flex-start}
@@ -229,7 +245,8 @@ form.eform input,form.cform input{flex:1 1 180px;width:auto;min-height:44px;font
 .tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:14px;border:0;background:transparent;color:var(--ink);font:800 15px/1 var(--body);cursor:pointer;transition:background var(--base) ease}
 .tab[aria-pressed="true"]{background:var(--card);box-shadow:0 2px 0 var(--edge)}
 .cal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.cal-nav .iconbtn{flex:none}
 .cal-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
 @media (min-width:900px){.cal-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}}
 .cal-day{background:var(--bg2);border-radius:16px;padding:10px 8px;display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -247,6 +264,18 @@ form.eform input,form.cform input{flex:1 1 180px;width:auto;min-height:44px;font
 .cal-ev.done .ev b{text-decoration:line-through;font-weight:600}
 .cal-ev b{font-weight:700}
 .cal-none{font-size:13px;color:var(--muted);padding:0 2px}
+.day-grid{display:flex;flex-direction:column;gap:6px}
+.hr{display:grid;grid-template-columns:58px minmax(0,1fr) 44px;gap:8px;align-items:start;background:var(--bg2);border-radius:14px;padding:6px 6px 6px 12px;min-height:56px}
+.hr.now{outline:2px solid var(--ink);outline-offset:1px}
+.hr .hh{display:flex;flex-direction:column;gap:3px;font:800 13px/1 var(--body);color:var(--muted);padding-top:15px;font-variant-numeric:tabular-nums}
+.hr .hh small{font-size:12px;color:var(--ink);text-transform:uppercase;letter-spacing:.06em}
+.hr .slot{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;min-width:0}
+.day-grid .cal-ev{width:auto;max-width:100%}
+.cal-cont{display:inline-flex;align-items:center;min-height:44px;padding:6px 10px;border:2px dashed;border-radius:12px;font:600 13px/1.3 var(--body);color:var(--ink);overflow-wrap:anywhere}
+.addslot{background:transparent;border-style:dashed;border-color:var(--control)}
+form.cal-add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex:1 1 100%;padding:2px 0}
+form.cal-add input[type=text]{flex:1 1 160px;width:auto;min-height:44px;font-size:16px}
+form.cal-add input[type=time],form.cal-add select{flex:0 0 auto;width:auto;min-height:44px;font-size:15px}
 .legend-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:4px 14px 4px 6px;border-radius:999px;border:2px solid var(--control);background:var(--card);color:var(--ink);font:700 15px/1 var(--body);cursor:pointer}
 .legend-btn[aria-pressed="false"]{border-style:dashed;color:var(--muted);text-decoration:line-through}
 .btn.cheer{background:var(--accent);color:var(--on-accent);border-color:transparent}
@@ -271,18 +300,45 @@ form.eform input,form.cform input{flex:1 1 180px;width:auto;min-height:44px;font
 .tile span{font-size:13px;font-weight:600;color:var(--muted);line-height:1.25}
 .heat{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
 .heat .hd{font:700 12px/1 var(--body);color:var(--muted);text-align:center;padding-bottom:2px}
-.hc{aspect-ratio:1;border-radius:10px;display:grid;place-items:center;font:700 13px/1 var(--body);font-variant-numeric:tabular-nums;border:2px dashed var(--line);color:var(--muted)}
-.hc.l0{border:0;background:var(--bg2)}
-.hc.l1{border:0;background:var(--hero);color:var(--on-hero)}
-.hc.l2{border:0;background:var(--accent);color:var(--on-accent)}
+.hc{min-height:54px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px 3px;font:700 12px/1 var(--body);font-variant-numeric:tabular-nums;border:2px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;min-width:0}
+.hc small{font-size:12px;font-weight:600}
+.hc b{font-size:12px;font-weight:800;color:var(--ink)}
+.hc .fill{display:block;width:100%;height:6px;border-radius:999px;background:var(--line);overflow:hidden}
+.hc .fill i{display:block;height:100%;border-radius:999px;background:var(--hero2)}
+.hc.l0,.hc.l1{border:2px solid transparent;background:var(--bg2)}
+.hc.l2{border:2px solid transparent;background:var(--accent-soft);color:var(--on-accent-soft)}
+.hc.l2 b{color:var(--on-accent-soft)} .hc.l2 .fill i{background:var(--accent)}
+@media (hover:hover){.hc:hover{border-color:var(--control)}}
 .hc.today{outline:2px solid var(--ink);outline-offset:2px}
 .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted);font-weight:600}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-1px;background:var(--bg2)}
-.legend i.l1{background:var(--hero)} .legend i.l2{background:var(--accent)}
+.legend i.l1{background:var(--hero2)} .legend i.l2{background:var(--accent)}
+.tips{display:flex;flex-direction:column;gap:10px}
+.tips li{display:flex;gap:10px;align-items:flex-start;font-size:15px;overflow-wrap:anywhere}
+.tips .dot{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--amber-soft);color:var(--on-amber-soft)}
+.tips b{font-weight:800}
+.daytools{display:flex;gap:6px 12px;flex-wrap:wrap;align-items:center;font-size:15px}
+.daytools input[type=date]{width:auto;min-height:44px;font-size:15px}
+.cal-nav input[type=date]{width:auto;min-height:44px;font-size:15px}
+.cal-day h3 .linkbtn{padding:0;font:inherit;color:var(--ink)}
+
+/* collapsible profile panel */
+details.panel{display:block;padding:0}
+details.panel>summary{display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:60px;cursor:pointer;list-style:none;border-radius:var(--r)}
+details.panel>summary::-webkit-details-marker{display:none}
+#meAvatar{display:grid}
+.sum-txt{display:flex;flex-direction:column;flex:1;min-width:0}
+.sum-txt b{font:600 19px/1.25 var(--display)}
+.sum-txt small{font-size:13px;color:var(--muted)}
+.chev{display:grid;place-items:center;transition:transform var(--base) ease}
+details[open]>summary .chev{transform:rotate(180deg)}
+.dbody{display:flex;flex-direction:column;gap:14px;padding:4px 18px 18px}
+#meBtn{padding:0;border-radius:50%}
 
 /* settings */
 .settings{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center;font-size:15px}
 .settings select{min-height:44px;font-size:15px;width:auto}
+.settings input[type=number]{min-height:44px;font-size:15px;width:96px}
 #roster{display:flex;flex-direction:column;gap:8px}
 #roster li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px}
 hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
@@ -306,11 +362,18 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
 
   <header class="bar">
     <span class="logo">
-      <svg class="logo-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect width="32" height="32" rx="10"/><path d="M9 16.5l5 5 9-10"/></svg>
-      Pact
+      <!-- Two people leaning together make one tick: pair, then act. -->
+      <svg class="logo-mark" viewBox="0 0 48 48" width="46" height="46" aria-hidden="true">
+        <rect class="lm-edge" x="2" y="6" width="44" height="40" rx="14"/>
+        <rect class="lm-tile" x="2" y="2" width="44" height="40" rx="14"/>
+        <path class="lm-b" d="M21.5 30.5L33 16.5"/><circle class="lm-b" cx="36.4" cy="10.6" r="3.5"/>
+        <path class="lm-a" d="M14.6 23.6l6.9 6.9"/><circle class="lm-a" cx="11.6" cy="17" r="3.5"/>
+      </svg>
+      <span class="logo-txt"><b>PACT</b><small>Pair &amp; Act</small></span>
     </span>
     <div class="bar-actions">
       <span class="streak-badge" id="streakBadge" hidden></span>
+      <button class="iconbtn" id="meBtn" type="button" aria-label="Open your profile" hidden></button>
       <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark theme"></button>
     </div>
   </header>
@@ -390,16 +453,23 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
 
       <section class="panel" id="calendar" aria-label="Circle calendar" hidden>
         <div class="cal-head">
-          <h2 id="calTitle">This week</h2>
+          <h2 id="calTitle">Today</h2>
+          <div class="tabs" role="group" aria-label="Calendar view">
+            <button class="tab" id="calViewDay" type="button" aria-pressed="true">Day view</button>
+            <button class="tab" id="calViewWeek" type="button" aria-pressed="false">Week view</button>
+          </div>
           <div class="cal-nav">
             <button class="iconbtn" id="calPrev" type="button" aria-label="Previous week" data-ic="left"></button>
-            <button class="btn small" id="calNow" type="button">This week</button>
+            <button class="btn small" id="calNow" type="button">Today</button>
             <button class="iconbtn" id="calNext" type="button" aria-label="Next week" data-ic="right"></button>
+            <label class="sr" for="calDate">Go to a date</label>
+            <input type="date" id="calDate">
+            <button class="btn small" id="calToPlan" type="button">Plan this day</button>
           </div>
         </div>
         <div class="chips" id="calLegend" role="group" aria-label="Show or hide people"></div>
         <div class="cal-grid" id="calGrid"></div>
-        <p class="muted">Everyone's plans in one place, from four weeks back to a week ahead. Tap a task to open that person's plan.</p>
+        <p class="muted">Everyone's plans in one place, from four weeks back to two months ahead. In the Day view, press + on an hour to add an appointment; it goes into your plan for that day as well. Tap a task to open that person's plan.</p>
       </section>
 
       <div class="cols" id="planView">
@@ -410,6 +480,11 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
 
           <section class="plan" aria-label="Plan">
             <div class="days" id="days" role="group" aria-label="Pick a day"></div>
+            <div class="daytools">
+              <label for="goDate">Plan another date</label>
+              <input type="date" id="goDate">
+              <button class="linkbtn" id="dayToCal" type="button">See this day in the calendar</button>
+            </div>
             <h2 id="dayTitle">Today</h2>
             <div>
               <div class="meter" id="meter"></div>
@@ -419,46 +494,20 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
               <form class="add" id="addForm" autocomplete="off">
                 <label class="sr" for="addInput">What will you do?</label>
                 <input type="text" id="addInput" maxlength="120" placeholder="What will you do?">
+                <label class="sr" for="addLen">How long it will take</label>
+                <span id="addLenSlot"></span>
                 <button class="btn primary" type="submit" data-ic="plus">Add</button>
               </form>
-              <p class="hint" id="addHint" style="margin-top:8px" aria-live="polite">Tip: a time, a length or a day at the end gets picked up, like <em>Call the bank 14:30 20m fri</em>.</p>
+              <p class="hint" id="addHint" style="margin-top:8px" aria-live="polite">Tip: you can also type the time, length or day, like <em>Call the bank 14:30 20m fri</em>.</p>
             </div>
             <ul id="list" aria-label="Commitments for the selected day"></ul>
           </section>
         </div>
 
         <aside class="side">
-          <section class="panel" id="buddy" hidden>
-            <h2 id="buddyTitle">Check up on them</h2>
-            <p class="muted" id="buddyHint"></p>
-            <div class="field">
-              <label for="nudgeMsg">Optional note</label>
-              <input type="text" id="nudgeMsg" maxlength="140" placeholder="How's the report going?">
-            </div>
-            <div class="row">
-              <button class="btn primary" id="nudgeBtn" type="button" data-ic="bell">Send a nudge</button>
-              <button class="btn cheer" id="cheerBtn" type="button" data-ic="heart">Send a cheer</button>
-            </div>
-            <p class="muted" id="buddyStatus" aria-live="polite"></p>
-            <p class="muted"><a id="buddyCal" target="_blank" rel="noopener" href="#">Add a daily "check on my buddies" reminder to my calendar</a></p>
-          </section>
-
-          <section class="panel">
-            <h2 id="statsTitle">Your progress</h2>
-            <div class="tiles" id="stats"></div>
-            <h3>Last 4 weeks</h3>
-            <div class="heat" id="heat"></div>
-            <p class="legend"><span><i></i>Planned, none done</span><span><i class="l1"></i>Some done</span><span><i class="l2"></i>All done</span></p>
-            <p class="muted" id="streak"></p>
-          </section>
-
-          <section class="panel">
-            <h2 id="feedTitle">Check-ins</h2>
-            <ul class="feed" id="feed"></ul>
-          </section>
-
-          <section class="panel" id="settings" hidden>
-            <h2>Your profile</h2>
+          <details class="panel" id="settings" hidden>
+            <summary><span id="meAvatar"></span><span class="sum-txt"><b>Your profile</b><small>Name, goal, reminders and people</small></span><span class="chev" data-ic="down"></span></summary>
+            <div class="dbody">
             <div class="field">
               <label for="myName">Your name in this circle</label>
               <input type="text" id="myName" maxlength="30">
@@ -485,11 +534,12 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
             <hr>
             <h2>Reminders</h2>
             <div class="settings">
-              <label for="selfEvery">Ask me "still on it?" every</label>
-              <select id="selfEvery">
-                <option value="0">Off</option><option value="15">15 min</option>
-                <option value="25">25 min</option><option value="45">45 min</option>
-              </select>
+              <label for="selfEvery">"Still on it?" check every (minutes, 0 = off)</label>
+              <input type="number" id="selfEvery" min="0" max="240" step="1" inputmode="numeric">
+              <label for="taskLead">Reminder before a timed task (minutes, empty = off)</label>
+              <input type="number" id="taskLead" min="0" max="120" step="1" inputmode="numeric">
+              <span>Try the "still on it?" check</span>
+              <button class="btn small" id="selfTest" type="button">Test it now</button>
               <label for="calPref">Calendar links open in</label>
               <select id="calPref"><option value="google">Google Calendar</option><option value="outlook">Outlook</option></select>
               <span>Sound when a nudge arrives</span>
@@ -510,7 +560,46 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
               <button class="btn small" id="leaveBtn" type="button">Leave this circle</button>
               <button class="btn small" type="button" data-signout>Sign out</button>
             </div>
+            </div>
+          </details>
+          <section class="panel" id="buddy" hidden>
+            <h2 id="buddyTitle">Check up on them</h2>
+            <p class="muted" id="buddyHint"></p>
+            <div class="field">
+              <label for="nudgeMsg">Optional note</label>
+              <input type="text" id="nudgeMsg" maxlength="140" placeholder="How's the report going?">
+              <div class="chips" id="noteIdeas" role="group" aria-label="Note ideas"></div>
+            </div>
+            <div class="row">
+              <button class="btn primary" id="nudgeBtn" type="button" data-ic="bell">Send a nudge</button>
+              <button class="btn cheer" id="cheerBtn" type="button" data-ic="heart">Send a cheer</button>
+            </div>
+            <p class="muted" id="buddyStatus" aria-live="polite"></p>
+            <p class="muted"><a id="buddyCal" target="_blank" rel="noopener" href="#">Add a daily "check on my buddies" reminder to my calendar</a></p>
           </section>
+
+          <section class="panel">
+            <h2 id="statsTitle">Your progress</h2>
+            <div class="tiles" id="stats"></div>
+            <h3>Last 4 weeks</h3>
+            <div class="heat" id="heat"></div>
+            <p class="legend"><span><i class="l1"></i>The bar fills as that day's plan gets done</span><span><i class="l2"></i>Everything done</span></p>
+            <p class="hint">Tap a day to open it.</p>
+            <p class="muted" id="streak"></p>
+          </section>
+
+          <section class="panel" id="insights">
+            <h2 id="insightsTitle">Insights</h2>
+            <ul class="tips" id="tips"></ul>
+            <h3>The circle</h3>
+            <ul class="tips" id="groupTips"></ul>
+          </section>
+
+          <section class="panel">
+            <h2 id="feedTitle">Check-ins</h2>
+            <ul class="feed" id="feed"></ul>
+          </section>
+
         </aside>
       </div>
     </div>
@@ -554,6 +643,8 @@ const ICONS={
   pause:"M8 5v14M16 5v14",
   calendar:"M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
   clock:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
+  timer:"M10 2h4M12 14l3-3M12 6a8 8 0 1 0 0 16 8 8 0 0 0 0-16z",
+  down:"M6 9l6 6 6-6",
   trash:"M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6",
   arrow:"M5 12h14M13 6l6 6-6 6",
   left:"M15 18l-6-6 6-6",
@@ -588,7 +679,7 @@ const pad=n=>String(n).padStart(2,"0");
 const dayKey=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const keyDate=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d);};
 const shift=(k,n)=>{const d=keyDate(k);return dayKey(new Date(d.getFullYear(),d.getMonth(),d.getDate()+n));};
-const today=dayKey(new Date()),yesterday=shift(today,-1),HORIZON=7,BACK=27;
+const today=dayKey(new Date()),yesterday=shift(today,-1),HORIZON=7,BACK=27,AHEAD=60;   // day chips show a week; plans can be made up to AHEAD days out
 const hhmm=ts=>{const d=new Date(ts);return pad(d.getHours())+":"+pad(d.getMinutes());};
 function dayName(k,long){
   if(k===today)return "Today";if(k===shift(today,1))return "Tomorrow";
@@ -613,6 +704,9 @@ let view="";                 // uid whose plan is on screen
 let sel=today;               // day shown in the plan
 let mode="plan";             // "plan" or "calendar"
 let calOff=0;                // week shown in the circle calendar, 0 = this week
+let calView="day";           // "day" (hour by hour) or "week"
+let calDay=0;                // day shown in the day view, 0 = today
+let calAdd=null;             // hour whose "add" form is open in the day view
 const calHide=new Set();     // uids hidden in the circle calendar
 let edit=null;               // {id, day} of the task being edited
 const openThreads=new Set(); // "ownerUid|taskId" of comment threads that are open
@@ -626,6 +720,21 @@ const CHEER_REPLIES={thanks:"Thanks!",needed:"Needed that",back:"Right back at y
 const REPLIES={...NUDGE_REPLIES,...CHEER_REPLIES};
 const AREAS=["Study","Work","Fitness","Health","Creative","Habits","Money","Mindset"];
 const STYLES={gentle:"gentle reminders",direct:"being direct",cheer:"mostly cheers"};
+// How the "nudge me" preference changes the app. nudge = what a nudge says when it reaches that person,
+// self = their own "still on it?" check, notes = note ideas offered to whoever is nudging them.
+const TONE={
+  "":{nudge:n=>n+" is checking on you.",self:t=>t?"Still on “"+t+"”?":"Quick check: what are you on right now?",
+    notes:["How's it going?","Need anything?","Still on track?"]},
+  gentle:{nudge:n=>n+" is checking in. No pressure.",self:t=>t?"Gentle check: still on “"+t+"”?":"Gentle check: what would you like to pick up?",
+    notes:["No rush. How's it going?","Thinking of you. Need anything?","Small steps count. Where are you at?"]},
+  direct:{nudge:n=>n+" wants a straight answer: are you on it?",self:t=>t?"Straight answer: are you working on “"+t+"” right now?":"Straight answer: what are you working on right now?",
+    notes:["Have you started yet?","What's blocking you?","When will it be done?"]},
+  cheer:{nudge:n=>n+" is rooting for you. How's it going?",self:t=>t?"You've got this. Still on “"+t+"”?":"You've got this. What's next?",
+    notes:["You've got this!","Proud of you for showing up.","One more push, you're close."]}
+};
+const toneOf=uid=>TONE[(members[uid]&&members[uid].style)||""]||TONE[""];
+let nudgeArm="",ideasFor="";
+const reminded=new Set();
 const AVATAR_COLORS=["#FDBA74","#86EFAC","#93C5FD","#F9A8D4","#C4B5FD","#FDE047","#5EEAD4","#FCA5A5"];
 
 const mine=()=>view===me.uid;
@@ -661,7 +770,17 @@ function findTask(uid,id){
   for(const k in days){if(days[k].uid!==uid)continue;const t=days[k].tasks.find(x=>x.id===id);if(t)return t;}
   return null;
 }
-function toast(msg){const t=$("toast");t.hidden=true;t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},3200);}
+function toast(msg,ms){const t=$("toast");t.hidden=true;t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},ms||3200);}
+const dayDiff=k=>Math.round((keyDate(k)-keyDate(today))/86400000);
+const dayWords=k=>dayName(k,true).replace(/^(Today|Tomorrow)$/,m=>m.toLowerCase());
+// Every date on screen is a link: today and later open in the plan (unless the calendar is asked for), the past in the calendar.
+function openDay(k,where){
+  const n=dayDiff(k);
+  if(where!=="calendar"&&n>=0&&n<=AHEAD){sel=k;mode="plan";}
+  else{calView="day";calDay=Math.min(AHEAD,Math.max(-BACK,n));calAdd=null;mode="calendar";}
+  render();
+  (mode==="plan"?$("dayTitle"):$("calTitle")).scrollIntoView({block:"center"});
+}
 function celebrate(){
   if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   const box=h("div",{class:"confetti","aria-hidden":"true"}),cols=["#F59E0B","#059669","#FBBF24","#34D399","#FB923C","#93C5FD"];
@@ -677,9 +796,15 @@ function cleanDay(raw,id){
     time:/^\d\d:\d\d$/.test(t.time)?t.time:"",
     mins:Number(t.mins)>0?Math.min(600,Math.round(Number(t.mins))):0,
     status:["todo","doing","done"].includes(t.status)?t.status:"todo",
-    startedAt:Number(t.startedAt)||0,doneAt:Number(t.doneAt)||0
+    startedAt:Number(t.startedAt)||0,doneAt:Number(t.doneAt)||0,
+    pomos:Math.min(99,Math.max(0,Math.round(Number(t.pomos)||0)))
   })):[];
-  return {uid:id.slice(0,-11),day:id.slice(-10),tasks,updatedAt:Number(d.updatedAt)||0};
+  // focus = the running focus timer: which task, focus or break, its length, when it ends (0 while paused)
+  // and, while paused, how many milliseconds were left.
+  const f=d.focus&&typeof d.focus==="object"&&tasks.some(t=>t.id===String(d.focus.id))?d.focus:null;
+  const focus=f?{id:String(f.id),kind:f.kind==="break"?"break":"focus",mins:Math.min(600,Math.max(1,Math.round(Number(f.mins)||25))),
+    end:Number(f.end)||0,left:Math.max(0,Number(f.left)||0)}:null;
+  return {uid:id.slice(0,-11),day:id.slice(-10),tasks,focus,updatedAt:Number(d.updatedAt)||0};
 }
 const busy=k=>!!(q[k]&&(q[k].saving||q[k].dirty));
 const myDay=day=>{const k=me.uid+"_"+day;return days[k]||(days[k]=cleanDay({},k));};
@@ -731,11 +856,12 @@ function parseTask(raw){
   }
   return {text,time,mins:Math.min(600,mins),day};
 }
-function addTask(raw){
+function addTask(raw,len){
   const p=parseTask(raw);if(!p.text)return;
+  if(!p.mins)p.mins=Math.min(600,Math.max(0,Number(len)||0));   // a length typed into the task wins over the picker
   const key=p.day||sel,d=myDay(key);
   if(d.tasks.length>=30){note("30 is the limit for one day. Finish or remove something first.");return;}
-  d.tasks.push({id:Math.random().toString(36).slice(2,10),text:p.text,time:p.time,mins:p.mins,status:"todo",startedAt:0,doneAt:0});
+  d.tasks.push({id:Math.random().toString(36).slice(2,10),text:p.text,time:p.time,mins:p.mins,status:"todo",startedAt:0,doneAt:0,pomos:0});
   $("addHint").textContent=key===sel?"Added.":"Added to "+dayName(key,true)+".";
   saveDay(key);
 }
@@ -744,34 +870,94 @@ function setStatus(id,status){
   if(status==="doing"){d.tasks.forEach(x=>{if(x.status==="doing")x.status="todo";});t.startedAt=Date.now();}
   if(status==="done")t.doneAt=Date.now();
   t.status=status;lastPrompt=Date.now();selfPrompt=false;
+  // The focus timer belongs to the task in progress: it stops when that task stops or another one starts.
+  if(d.focus&&(d.focus.id===id?status!=="doing":status==="doing"))d.focus=null;
   if(status==="done"&&d.tasks.every(x=>x.status==="done")){celebrate();toast("Everything for today is done. Nice work.");}
   saveDay(today);
 }
-function removeTask(key,id){const d=myDay(key);d.tasks=d.tasks.filter(x=>x.id!==id);saveDay(key);}
+function removeTask(key,id){const d=myDay(key);d.tasks=d.tasks.filter(x=>x.id!==id);if(d.focus&&d.focus.id===id)d.focus=null;saveDay(key);}
 function moveTasks(from,to,ids){
   const a=myDay(from),b=myDay(to),moving=a.tasks.filter(t=>ids.includes(t.id));
   if(!moving.length)return;
   if(b.tasks.length+moving.length>30){note(dayName(to,true)+" is full. Remove something there first.");return;}
   a.tasks=a.tasks.filter(t=>!ids.includes(t.id));
-  moving.forEach(t=>b.tasks.push({id:t.id,text:t.text,time:t.time,mins:t.mins,status:"todo",startedAt:0,doneAt:0}));
+  if(a.focus&&ids.includes(a.focus.id))a.focus=null;
+  moving.forEach(t=>b.tasks.push({id:t.id,text:t.text,time:t.time,mins:t.mins,status:"todo",startedAt:0,doneAt:0,pomos:t.pomos||0}));
   saveDay(from);saveDay(to);
+}
+
+/* ---------- focus timer (pomodoro) ---------- */
+const POMO={15:3,25:5,50:10};          // focus minutes -> break minutes
+const breakFor=m=>POMO[m]||(m<=30?5:m<=60?10:15);   // a timer set to the task's own length gets a break to match
+const LENGTHS=[10,15,25,30,45,60,90,120];
+function lenSelect(id,value,onchange,key){
+  const v=Number(value)||0,opts=LENGTHS.includes(v)||!v?LENGTHS:LENGTHS.concat(v).sort((a,b)=>a-b);
+  const s=h("select",{id:id,"data-key":key||null,onchange:onchange||null},h("option",{value:"0"},"No set length"),
+    ...opts.map(m=>h("option",{value:String(m)},m<60?m+" min":(m%60?(m/60).toFixed(1):m/60)+" h")));
+  s.value=String(v);return s;
+}
+let pomoEls=null;                      // the countdown on screen, repainted every second
+const focusOf=uid=>{const d=days[uid+"_"+today];return d&&d.focus?d.focus:null;};
+const focusLeft=f=>f.end?Math.max(0,f.end-Date.now()):f.left;
+const clock=ms=>{const s=Math.ceil(ms/1000);return pad(Math.floor(s/60))+":"+pad(s%60);};
+function startFocus(id,mins){
+  const d=myDay(today),t=d.tasks.find(x=>x.id===id);if(!t||t.status==="done")return;
+  mins=Math.round(Number(mins))||0;
+  if(mins<1||mins>600)mins=Number(store.get("pact.pomo","25"));
+  if(mins<1||mins>600)mins=25;
+  if(POMO[mins])store.set("pact.pomo",String(mins));
+  if(t.status!=="doing"){d.tasks.forEach(x=>{if(x.status==="doing")x.status="todo";});t.status="doing";t.startedAt=Date.now();}
+  d.focus={id:id,kind:"focus",mins:mins,end:Date.now()+mins*60000,left:0};
+  lastPrompt=Date.now();selfPrompt=false;
+  saveDay(today);
+}
+function pauseFocus(){const f=focusOf(me.uid);if(!f||!f.end)return;f.left=Math.max(0,f.end-Date.now());f.end=0;saveDay(today);}
+function resumeFocus(){const f=focusOf(me.uid);if(!f||f.end)return;f.end=Date.now()+f.left;f.left=0;saveDay(today);}
+function endFocus(){const d=myDay(today);if(!d.focus)return;d.focus=null;saveDay(today);}
+function finishFocus(){
+  const d=myDay(today),f=d.focus;if(!f)return;
+  const late=Date.now()-f.end;
+  if(f.kind==="focus"){
+    const t=d.tasks.find(x=>x.id===f.id),br=breakFor(f.mins);
+    if(t)t.pomos=Math.min(99,(t.pomos||0)+1);
+    // Came back long after it rang (the tab was closed): count the block, skip the break.
+    d.focus=late>br*60000?null:{id:f.id,kind:"break",mins:br,end:Date.now()+br*60000,left:0};
+    beep();toast("Focus block done. "+(d.focus?"Take a "+br+"-minute break.":"Nice work."));popup("Focus block done","Take a "+br+"-minute break.");
+  }else{
+    d.focus=null;
+    if(late<60000){beep();toast("Break's over. Ready for the next block?");popup("Break's over","Ready for the next block?");}
+  }
+  lastPrompt=Date.now();selfPrompt=false;
+  saveDay(today);
+}
+function tickFocus(){
+  if(!ready||!me)return;
+  const f=focusOf(me.uid);
+  if(f&&f.end&&Date.now()>=f.end){finishFocus();return;}
+  if(!pomoEls)return;
+  const g=focusOf(pomoEls.uid);
+  if(!g){if(pomoEls.uid!==me.uid)renderNow();return;}
+  const left=focusLeft(g),total=g.mins*60000;
+  pomoEls.time.textContent=clock(left);
+  pomoEls.fg.setAttribute("stroke-dashoffset",(pomoEls.c*(1-Math.min(1,left/total))).toFixed(2));
+  // A buddy's timer that has run out stays at 00:00 until their own page moves it on.
 }
 /* Editing reuses the quick-add wording: "Call the bank 14:30 20m fri" sets text, time, length and day. */
 function startEdit(t){
-  edit={id:t.id,day:sel};drafts["e:"+t.id]=t.text+(t.time?" "+t.time:"")+(t.mins?" "+t.mins+"m":"");
+  edit={id:t.id,day:sel};drafts["e:"+t.id]=t.text+(t.time?" "+t.time:"");drafts["em:"+t.id]=String(t.mins||0);
   renderList();const i=$("edit-"+t.id);if(i){i.focus();i.select();}
 }
 const refocusEdit=id=>{const b=$("list").querySelector('[data-edit="'+id+'"]');if(b)b.focus();};
-function cancelEdit(){const id=edit&&edit.id;if(id)delete drafts["e:"+id];edit=null;renderList();if(id)refocusEdit(id);}
+function cancelEdit(){const id=edit&&edit.id;if(id){delete drafts["e:"+id];delete drafts["em:"+id];}edit=null;renderList();if(id)refocusEdit(id);}
 function saveEdit(){
   if(!edit)return;
   const from=edit.day,id=edit.id,t=myDay(from).tasks.find(x=>x.id===id),p=parseTask(drafts["e:"+id]||"");
   if(!t){cancelEdit();return;}
   if(!p.text){toast("A task needs a few words.");return;}
-  t.text=p.text.slice(0,120);t.time=p.time;t.mins=p.mins;
-  delete drafts["e:"+id];edit=null;
+  t.text=p.text.slice(0,120);t.time=p.time;t.mins=p.mins||Math.min(600,Math.max(0,Number(drafts["em:"+id])||0));
+  delete drafts["e:"+id];delete drafts["em:"+id];edit=null;
   saveDay(from);
-  if(p.day&&p.day!==from){moveTasks(from,p.day,[id]);toast("Moved to "+dayName(p.day,true)+".");}
+  if(p.day&&p.day!==from){moveTasks(from,p.day,[id]);toast("Moved to "+dayWords(p.day)+".");}
   else refocusEdit(id);
 }
 async function sendComment(owner,day,taskId){
@@ -795,7 +981,8 @@ function renderPeople(){
   const ids=Object.keys(members).sort((a,b)=>(a===me.uid?-1:b===me.uid?1:realName(a).localeCompare(realName(b))));
   $("people").replaceChildren(...ids.map(uid=>{
     const ts=tasksOf(uid,today),dn=doneOf(uid,today),doing=ts.find(t=>t.status==="doing");
-    const state=!ts.length?"No plan yet":doing?"On: "+doing.text:dn===ts.length?"All done":dn?"Between tasks":"Not started";
+    const fo=focusOf(uid),live=fo&&doing&&fo.id===doing.id&&fo.end>Date.now();
+    const state=!ts.length?"No plan yet":doing?(live?(fo.kind==="break"?"On a break: ":"Focusing: "):"On: ")+doing.text:dn===ts.length?"All done":dn?"Between tasks":"Not started";
     return h("button",{class:"pchip",type:"button","aria-pressed":uid===view?"true":"false",
       onclick:()=>{view=uid;sel=today;mode="plan";$("buddyStatus").textContent="";render();}},
       ring(ts.length?dn/ts.length:0,52,5,avatar(uid,38)),
@@ -811,7 +998,7 @@ function renderProfile(){
       h("span",{class:"txt"},h("h2",null,"Tell your buddies what you're working toward"),
         h("p",{class:"muted"},"A one-line goal and a few focus areas help them cheer for the right things.")),
       h("div",{class:"row"},
-        h("button",{class:"btn small primary",type:"button",onclick:()=>{const i=$("myGoal");i.scrollIntoView({block:"center"});i.focus();}},"Set my goal"),
+        h("button",{class:"btn small primary",type:"button",onclick:()=>{$("settings").open=true;const i=$("myGoal");i.scrollIntoView({block:"center"});i.focus();}},"Set my goal"),
         h("button",{class:"btn small",type:"button",onclick:()=>{store.set("pact.goalPrompt."+gid,"off");renderProfile();}},"Not now")));
     box.hidden=false;return;
   }
@@ -825,15 +1012,33 @@ function renderProfile(){
 function renderNow(){
   const box=$("now"),tasks=tasksOf(view,today),day=days[view+"_"+today],who=realName(view);
   const doing=tasks.find(t=>t.status==="doing"),next=tasks.find(t=>t.status==="todo"),dn=doneOf(view,today);
-  const txt=[],btns=[];
+  const txt=[],btns=[];let pomo=null;
+  const f=ready&&doing?focusOf(view):null,timing=f&&f.id===doing.id&&(f.end===0||f.end>Date.now()||mine());
+  pomoEls=null;
   if(!ready){txt.push(h("span",{class:"label"},"Now"),h("span",{class:"what loading"},"Loading today…"));}
   else if(doing){
-    txt.push(h("span",{class:"label"},mine()?"Now":who+" is on"),h("span",{class:"what"},doing.text));
+    const brk=timing&&f.kind==="break";
+    txt.push(h("span",{class:"label"},timing?(brk?(mine()?"On a break from":who+" is on a break from"):(mine()?"Focusing on":who+" is focusing on")):mine()?"Now":who+" is on"),h("span",{class:"what"},doing.text));
     const mins=doing.startedAt?Math.max(0,Math.round((Date.now()-doing.startedAt)/60000)):0;
-    txt.push(h("span",{class:"meta"},(doing.startedAt?"Started "+hhmm(doing.startedAt)+" · "+mins+" min in":"In progress")+(doing.mins?" · planned "+doing.mins+" min":"")));
-    if(mine())btns.push(
-      h("button",{class:"btn",type:"button",onclick:()=>setStatus(doing.id,"done")},ic("check",20),"Done"),
-      h("button",{class:"btn ghost",type:"button",onclick:()=>setStatus(doing.id,"todo")},ic("pause",20),"Pause"));
+    txt.push(h("span",{class:"meta"},timing
+      ?(brk?"Break":"Focus block")+" · "+f.mins+" min"+(f.end?" · ends "+hhmm(f.end):" · paused")+(doing.pomos?" · "+doing.pomos+(doing.pomos===1?" block":" blocks")+" done":"")
+      :(doing.startedAt?"Started "+hhmm(doing.startedAt)+" · "+mins+" min in":"In progress")+(doing.mins?" · planned "+doing.mins+" min":"")));
+    if(mine()){
+      btns.push(
+        h("button",{class:"btn",type:"button",onclick:()=>setStatus(doing.id,"done")},ic("check",20),"Done"),
+        h("button",{class:"btn ghost",type:"button",onclick:()=>setStatus(doing.id,"todo")},ic("pause",20),"Not now"));
+      const pref=Number(store.get("pact.pomo","25"));
+      pomo=h("div",{class:"pomo",role:"group","aria-label":"Focus timer"},
+        h("span",{class:"lbl"},ic("timer",18),timing?(brk?"Break":"Focus timer"):"Focus timer"),
+        !timing&&Object.keys(POMO).map(m=>h("button",{class:"btn tbtn"+(Number(m)===pref?" on":""),type:"button","aria-label":"Start a "+m+" minute focus block with a "+POMO[m]+" minute break",
+          onclick:()=>startFocus(doing.id,Number(m))},m+" min")),
+        !timing&&doing.mins&&!POMO[doing.mins]&&h("button",{class:"btn tbtn",type:"button","aria-label":"Start a timer for the task's planned "+doing.mins+" minutes",
+          onclick:()=>startFocus(doing.id,doing.mins)},doing.mins+" min · task length"),
+        timing&&!brk&&(f.end
+          ?h("button",{class:"btn tbtn",type:"button",onclick:pauseFocus},"Pause timer")
+          :h("button",{class:"btn tbtn",type:"button",onclick:resumeFocus},"Resume timer")),
+        timing&&h("button",{class:"btn tbtn",type:"button",onclick:endFocus},brk?"Skip break":"Stop timer"));
+    }
   }else if(next){
     txt.push(h("span",{class:"label"},mine()?"Pick one thing":who+" hasn't started this yet"),h("span",{class:"what"},next.text));
     if(mine())btns.push(h("button",{class:"btn",type:"button",onclick:()=>setStatus(next.id,"doing")},ic("play",20),"Start this now"));
@@ -844,9 +1049,16 @@ function renderNow(){
     txt.push(h("span",{class:"label"},"Today"),h("span",{class:"what"},mine()?"What's the one thing you'll do first?":who+" hasn't planned today yet."));
   }
   if(ready&&!mine()&&day&&day.updatedAt)txt.push(h("span",{class:"meta"},"Last activity "+ago(day.updatedAt)));
-  const top=h("div",{class:"now-top"},h("div",{class:"now-txt"},...txt),
-    ready&&tasks.length?ring(dn/tasks.length,76,8,h("span",{"aria-label":dn+" of "+tasks.length+" done"},dn+"/"+tasks.length)):null);
-  put(box,top,btns.length?h("div",{class:"row"},...btns):null);
+  let dial=null;
+  if(timing){
+    // The countdown is repainted every second by tickFocus(); it is hidden from screen readers,
+    // which get the "ends 14:25" line above instead of a number that changes every second.
+    const left=focusLeft(f),time=h("span",{class:"time","aria-hidden":"true"},clock(left));
+    dial=ring(left/(f.mins*60000),104,9,time);
+    const fg=dial.querySelector(".ring-fg");
+    pomoEls={uid:view,time:time,fg:fg,c:Number(fg.getAttribute("stroke-dasharray"))};
+  }else if(ready&&tasks.length)dial=ring(dn/tasks.length,76,8,h("span",{"aria-label":dn+" of "+tasks.length+" done"},dn+"/"+tasks.length));
+  put(box,h("div",{class:"now-top"},h("div",{class:"now-txt"},...txt),dial),btns.length?h("div",{class:"row"},...btns):null,pomo);
 }
 function renderDays(){
   const chips=[];
@@ -859,9 +1071,15 @@ function renderDays(){
       h("b",null,d.getDate()),
       h("small",null,ts.length?(i===0?open+" open":ts.length+" planned"):"–")));
   }
+  if(dayDiff(sel)>HORIZON){
+    const d=keyDate(sel),ts=tasksOf(view,sel);
+    chips.push(h("button",{class:"dchip",type:"button","aria-pressed":"true","aria-label":dayName(sel,true)+", "+(ts.length?ts.length+" planned":"nothing planned")},
+      h("span",null,d.toLocaleDateString(undefined,{month:"short"})),h("b",null,d.getDate()),h("small",null,ts.length?ts.length+" planned":"–")));
+  }
   $("days").replaceChildren(...chips);
+  if(document.activeElement!==$("goDate"))$("goDate").value=sel;
   $("dayTitle").textContent=(mine()?"":realName(view)+" · ")+dayName(sel,true);
-  $("addInput").placeholder=sel===today?"What will you do today?":"What will you do on "+dayName(sel)+"?";
+  $("addInput").placeholder=sel===today?"What will you do today?":"What will you do on "+dayName(sel,dayDiff(sel)>6)+"?";
 }
 function renderList(){
   const tasks=tasksOf(view,sel),isToday=sel===today,own=mine();
@@ -875,7 +1093,8 @@ function renderList(){
     const meta=h("div",{class:"meta"},
       h("span",{class:"pill "+t.status},t.status==="doing"?"In progress":done?"Done"+(t.doneAt?" "+hhmm(t.doneAt):""):isToday?"To do":"Planned"),
       t.time&&h("span",{class:"tag"},ic("clock",15),t.time),
-      t.mins?h("span",{class:"tag"},t.mins+" min"):null);
+      t.mins?h("span",{class:"tag"},t.mins+" min"):null,
+      t.pomos?h("span",{class:"tag"},ic("timer",15),t.pomos+(t.pomos===1?" focus block":" focus blocks")):null);
     const key=view+"|"+t.id,cs=comments[key]||[],open=openThreads.has(key);
     if(own&&edit&&edit.id===t.id&&edit.day===sel){
       const ek="e:"+t.id,inp=h("input",{type:"text",id:"edit-"+t.id,"data-key":ek,maxlength:"120",oninput:e=>{drafts[ek]=e.target.value;}});
@@ -883,18 +1102,22 @@ function renderList(){
       return h("li",{class:"task "+t.status},check,h("div",{class:"body"},
         h("form",{class:"eform",autocomplete:"off",onsubmit:e=>{e.preventDefault();saveEdit();}},
           h("label",{class:"sr",for:"edit-"+t.id},"Edit task"),inp,
+          h("label",{class:"sr",for:"editlen-"+t.id},"How long it will take"),
+          lenSelect("editlen-"+t.id,drafts["em:"+t.id],e=>{drafts["em:"+t.id]=e.target.value;},"em:"+t.id),
           h("button",{class:"btn small primary",type:"submit"},"Save"),
           h("button",{class:"btn small",type:"button",onclick:cancelEdit},"Cancel")),
-        h("p",{class:"hint"},"Change the words, the time or the length. Add a day like “fri” at the end to move it.")));
+        h("p",{class:"hint"},"Change the words or the time, and pick a length. Add a day like “fri” at the end to move it.")));
     }
     const acts=h("div",{class:"acts"},
       own&&isToday&&t.status==="todo"&&h("button",{class:"act",type:"button",onclick:()=>setStatus(t.id,"doing")},ic("play",16),"Start"),
+      own&&isToday&&!done&&!(focusOf(me.uid)&&focusOf(me.uid).id===t.id)&&h("button",{class:"act",type:"button","aria-label":"Start a focus timer on: "+t.text,
+        onclick:()=>{startFocus(t.id);$("now").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});}},ic("timer",16),"Focus"),
       own&&h("button",{class:"act",type:"button","data-edit":t.id,"aria-label":"Edit: "+t.text,onclick:()=>startEdit(t)},ic("edit",16),"Edit"),
       h("button",{class:"act",type:"button","aria-expanded":open?"true":"false",
         onclick:()=>{if(open)openThreads.delete(key);else openThreads.add(key);renderList();if(!open){const i=$("list").querySelector('[data-key="c:'+key+'"]');if(i)i.focus();}}},
         ic("chat",16),cs.length?cs.length+(cs.length===1?" comment":" comments"):"Comment"),
       own&&!done&&h("a",{class:"act",href:calLink(t.text,sel,t.time,t.mins),target:"_blank",rel:"noopener"},ic("calendar",16),"Add to calendar"),
-      own&&!done&&sel!==shift(today,HORIZON)&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,shift(sel,1),[t.id])},ic("arrow",16),isToday?"Move to tomorrow":"Push a day later"),
+      own&&!done&&sel!==shift(today,AHEAD)&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,shift(sel,1),[t.id])},ic("arrow",16),isToday?"Move to tomorrow":"Push a day later"),
       own&&!isToday&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,today,[t.id])},"Do it today"),
       own&&h("button",{class:"act danger",type:"button","aria-label":"Remove: "+t.text,onclick:()=>removeTask(sel,t.id)},ic("trash",16),"Remove"));
     let thread=null;
@@ -957,7 +1180,10 @@ function renderStats(){
     const k=shift(today,-i),total=tasksOf(view,k).length,d=doneOf(view,k);
     const lvl=!total?"":d===0?" l0":d<total?" l1":" l2";
     const label=keyDate(k).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+": "+(total?d+" of "+total+" done":"nothing planned");
-    cells.push(h("span",{class:"hc"+lvl+(i===0?" today":""),role:"img","aria-label":label,title:label},total?d:""));
+    cells.push(h("button",{class:"hc"+lvl+(i===0?" today":""),type:"button","aria-label":label+". Open this day.",title:label,onclick:()=>openDay(k,i===0?"plan":"calendar")},
+      h("small",null,keyDate(k).getDate()),
+      total?h("b",null,d+"/"+total):null,
+      total?h("i",{class:"fill","aria-hidden":"true"},h("i",{style:"width:"+Math.round(d/total*100)+"%"})):null));
   }
   $("heat").replaceChildren(...cells);
   $("streak").textContent=streak>1?streak+" days in a row with something finished.":streak===1?"One day with something finished. That counts.":"No finished tasks yet this week. Today is a fine day to start.";
@@ -965,6 +1191,74 @@ function renderStats(){
   badge.replaceChildren(ic("flame",18),mineStreak+(mineStreak===1?" day":" days"));
   badge.setAttribute("aria-label","Your streak: "+mineStreak+(mineStreak===1?" day":" days"));
   badge.hidden=!ready||!mineStreak;
+}
+/* Insights: plain counting over the four weeks of plans already loaded. Past days only, so a day
+   still in progress does not drag the numbers down. Each one ends in something to try. */
+function insightsFor(uid){
+  const own=uid===me.uid,S=own?"You":realName(uid),P=own?"your":realName(uid)+"'s",out=[];
+  const past=[];
+  for(let i=1;i<=BACK;i++){const k=shift(today,-i),ts=tasksOf(uid,k);if(ts.length)past.push({i,k,ts,done:ts.filter(t=>t.status==="done").length});}
+  if(past.length<3){
+    out.push({icon:"clock",text:"Insights show up after three days with a plan"+(past.length?" ("+past.length+" so far)":"")+"."});
+    return out;
+  }
+  const pct=(a,b)=>Math.round(a/b*100);
+  const planned=past.reduce((n,d)=>n+d.ts.length,0),done=past.reduce((n,d)=>n+d.done,0),rate=done/planned;
+  const perDay=planned/past.length,donePerDay=done/past.length;
+  out.push({icon:"target",text:S+" finished "+done+" of "+planned+" planned tasks over "+past.length+" days ("+pct(done,planned)+"%)."});
+  // trend: last 7 days against the 7 before
+  const span=(a,b)=>{const ds=past.filter(d=>d.i>=a&&d.i<=b),p=ds.reduce((n,d)=>n+d.ts.length,0);return p>=3?ds.reduce((n,d)=>n+d.done,0)/p:null;};
+  const now7=span(1,7),before=span(8,14);
+  if(now7!=null&&before!=null&&Math.abs(now7-before)>=.1)
+    out.push({icon:"arrow",text:"The last 7 days went "+(now7>before?"better":"worse")+" than the 7 before: "+Math.round(now7*100)+"% against "+Math.round(before*100)+"%."});
+  // planning load
+  if(rate<.6&&perDay>=3)
+    out.push({icon:"edit",text:S+" planned about "+perDay.toFixed(1)+" tasks a day and finished about "+donePerDay.toFixed(1)+".",tip:"Try planning "+Math.max(1,Math.ceil(donePerDay)+1)+" a day and adding more only when those are done."});
+  else if(rate>=.9&&perDay<=3)
+    out.push({icon:"flame",text:S+" finished nearly everything planned.",tip:"There may be room for one more task a day."});
+  // weekdays
+  const wd={};past.forEach(d=>{const w=keyDate(d.k).getDay();(wd[w]||(wd[w]={p:0,d:0,n:0})).p+=d.ts.length;wd[w].d+=d.done;wd[w].n++;});
+  const wk=Object.keys(wd).filter(w=>wd[w].n>=2).map(w=>({w:Number(w),r:wd[w].d/wd[w].p})).sort((a,b)=>b.r-a.r);
+  if(wk.length>=2&&wk[0].r-wk[wk.length-1].r>=.25){
+    const wname=w=>new Date(2024,0,7+w).toLocaleDateString(undefined,{weekday:"long"}),top=wk[0],low=wk[wk.length-1];
+    out.push({icon:"calendar",text:wname(top.w)+" is "+P+" strongest day ("+Math.round(top.r*100)+"% done) and "+wname(low.w)+" the weakest ("+Math.round(low.r*100)+"%).",
+      tip:"Put the task that matters most on a "+wname(top.w)+" and plan lighter on "+wname(low.w)+"s."});
+  }
+  // timed against untimed
+  const all=past.flatMap(d=>d.ts),timed=all.filter(t=>t.time),loose=all.filter(t=>!t.time);
+  if(timed.length>=4&&loose.length>=4){
+    const a=timed.filter(t=>t.status==="done").length/timed.length,b=loose.filter(t=>t.status==="done").length/loose.length;
+    if(a-b>=.15)out.push({icon:"clock",text:"Tasks with a set time got done "+Math.round(a*100)+"% of the time, tasks without one "+Math.round(b*100)+"%.",tip:"Give more tasks a time."});
+    else if(b-a>=.15)out.push({icon:"clock",text:"Tasks without a set time got done more often ("+Math.round(b*100)+"%) than timed ones ("+Math.round(a*100)+"%).",tip:"The times may be too tight. Leave gaps between them."});
+  }
+  // repeated tasks
+  const rep={};all.forEach(t=>{const key=t.text.toLowerCase().replace(/[^a-z0-9 ]/g,"").replace(/\s+/g," ").trim();if(!key)return;(rep[key]||(rep[key]={text:t.text,n:0,d:0})).n++;if(t.status==="done")rep[key].d++;});
+  const reps=Object.values(rep).filter(r=>r.n>=3);
+  const best=reps.filter(r=>r.d/r.n>=.8).sort((a,b)=>b.n-a.n)[0],worst=reps.filter(r=>r.d/r.n<=.5).sort((a,b)=>b.n-a.n)[0];
+  if(best)out.push({icon:"check",text:"“"+best.text+"” is "+P+" most reliable habit: done "+best.d+" of "+best.n+" times."});
+  if(worst)out.push({icon:"bell",text:"“"+worst.text+"” was planned "+worst.n+" times and done "+worst.d+".",tip:"Make it smaller, give it a time, or ask a buddy to nudge on it."});
+  // days where nothing got finished
+  const zero=past.filter(d=>!d.done).length;
+  if(zero>=3&&zero/past.length>=.3)out.push({icon:"pause",text:"On "+zero+" of "+past.length+" planned days nothing was finished.",tip:"On a hard day, pick one task and start a 15-minute focus timer."});
+  let blocks=0;for(let i=0;i<7;i++)tasksOf(uid,shift(today,-i)).forEach(t=>{blocks+=t.pomos||0;});
+  if(blocks)out.push({icon:"timer",text:S+" completed "+blocks+" focus "+(blocks===1?"block":"blocks")+" in the last 7 days."});
+  return out;
+}
+function groupInsights(){
+  const ids=Object.keys(members),out=[];let p=0,d=0;
+  ids.forEach(u=>{for(let i=0;i<7;i++){const k=shift(today,-i);p+=tasksOf(u,k).length;d+=doneOf(u,k);}});
+  out.push({icon:"users",text:p?"Together the circle finished "+d+" of "+p+" planned tasks in the last 7 days ("+Math.round(d/p*100)+"%).":"Nobody in the circle has planned anything in the last 7 days."});
+  const withPlan=ids.filter(u=>tasksOf(u,today).length).length;
+  out.push({icon:"calendar",text:withPlan+" of "+ids.length+(ids.length===1?" person has":" people have")+" a plan for today.",tip:withPlan<ids.length&&ids.length>1?"A cheer or a nudge can help the others get started.":""});
+  const lead=ids.map(u=>({u,s:streakOf(u)})).sort((a,b)=>b.s-a.s)[0];
+  if(lead&&lead.s>=2)out.push({icon:"flame",text:"Longest streak right now: "+nm(lead.u)+", "+lead.s+" days in a row."});
+  return out;
+}
+function renderInsights(){
+  const li=x=>h("li",null,h("span",{class:"dot"},ic(x.icon,16)),h("span",null,x.text,x.tip?h("b",null," "+x.tip):null));
+  $("insightsTitle").textContent=mine()?"Insights for you":"Insights for "+realName(view);
+  $("tips").replaceChildren(...insightsFor(view).map(li));
+  $("groupTips").replaceChildren(...groupInsights().map(li));
 }
 function renderFeed(){
   const list=nudges.filter(n=>n.to===view),feed=$("feed");
@@ -980,7 +1274,7 @@ function renderBanner(){
   const b=$("banner");
   const pending=nudges.filter(n=>n.to===me.uid&&!n.reply);
   const doing=tasksOf(me.uid,today).find(t=>t.status==="doing");
-  document.title=pending.length?"("+pending.length+") "+(pending[0].kind==="cheer"?"Cheer!":"Nudge!")+" · Pact":"Pact";
+  document.title=pending.length?"("+pending.length+") "+(pending[0].kind==="cheer"?"Cheer!":"Nudge!")+" · Pact":"Pact · Pair & Act";
   if(pending.length){
     // A nudge asks "how is it going?", a cheer just needs a thank-you, so each kind has its own replies.
     const n=pending[0],cheer=n.kind==="cheer",set=cheer?CHEER_REPLIES:NUDGE_REPLIES;
@@ -991,7 +1285,7 @@ function renderBanner(){
       lastPrompt=Date.now();if(!cheer)saveDay(today);
     };
     put(b,
-      h("strong",null,ic(cheer?"heart":"bell",24),h("span",null,realName(n.from)+(cheer?" is cheering you on":" is checking on you")+(n.msg?": “"+n.msg+"”":"."))),
+      h("strong",null,ic(cheer?"heart":"bell",24),h("span",null,(cheer?realName(n.from)+" is cheering you on.":toneOf(me.uid).nudge(realName(n.from)))+(n.msg?" “"+n.msg+"”":""))),
       pending.length>1?h("span",null,"+"+(pending.length-1)+" more waiting"):null,
       h("div",{class:"row"},...Object.keys(set).map(c=>h("button",{class:"btn",type:"button",onclick:answer(c)},set[c]))));
     b.classList.toggle("cheer",cheer);
@@ -999,7 +1293,7 @@ function renderBanner(){
   }else if(selfPrompt){
     b.classList.remove("cheer");
     const close=()=>{selfPrompt=false;lastPrompt=Date.now();renderBanner();};
-    b.replaceChildren(h("strong",null,ic("clock",24),h("span",null,doing?"Still on “"+doing.text+"”?":"Quick check: what are you on right now?")),
+    b.replaceChildren(h("strong",null,ic("clock",24),h("span",null,toneOf(me.uid).self(doing?doing.text:""))),
       h("div",{class:"row"},
         h("button",{class:"btn",type:"button",onclick:()=>{close();saveDay(today);}},doing?"Yes, still on it":"Picking one now"),
         h("button",{class:"btn",type:"button",onclick:close},"Taking a break")));
@@ -1038,23 +1332,103 @@ function renderProfileForm(){
 }
 /* Circle calendar: one week, Monday to Sunday, everyone's tasks coloured by person. */
 const weekdayIdx=(new Date().getDay()+6)%7;                  // 0 = Monday
-const calMin=Math.ceil((weekdayIdx-BACK-6)/7),calMax=Math.floor((HORIZON+weekdayIdx)/7);
+const calMin=Math.ceil((weekdayIdx-BACK-6)/7),calMax=Math.floor((AHEAD+weekdayIdx)/7);
+function renderCalLegend(ids){
+  $("calLegend").replaceChildren(...ids.map(uid=>h("button",{class:"legend-btn",type:"button","aria-pressed":calHide.has(uid)?"false":"true",
+    "aria-label":"Show "+realName(uid),
+    onclick:()=>{if(calHide.has(uid))calHide.delete(uid);else calHide.add(uid);renderCalendar();}},avatar(uid,32),nm(uid))));
+}
 function renderCalendar(){
-  const start=shift(today,-weekdayIdx+calOff*7),first=shift(today,-BACK),last=shift(today,HORIZON);
+  const day=calView==="day";
+  $("calViewDay").setAttribute("aria-pressed",day?"true":"false");$("calViewWeek").setAttribute("aria-pressed",day?"false":"true");
+  $("calPrev").setAttribute("aria-label",day?"Previous day":"Previous week");$("calNext").setAttribute("aria-label",day?"Next day":"Next week");
+  $("calNow").textContent=day?"Today":"This week";
+  $("calGrid").className=day?"day-grid":"cal-grid";
+  $("calToPlan").hidden=!day||calDay<0;
+  if(document.activeElement!==$("calDate"))$("calDate").value=day?shift(today,calDay):shift(today,-weekdayIdx+calOff*7);
+  if(day)renderCalDay();else renderCalWeek();
+}
+/* Day view: one row per hour. Timed tasks sit in the hour they start; a task with a length also shows as
+   "until 15:30" in the hours it runs through, so everyone can see when a person is taken. */
+function renderCalDay(){
+  const k=shift(today,calDay),d=keyDate(k),canAdd=calDay>=0,ids=joinOrder();
+  $("calTitle").textContent=(calDay===0?"Today":calDay===1?"Tomorrow":calDay===-1?"Yesterday":d.toLocaleDateString(undefined,{weekday:"long"}))+" · "+d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
+  $("calPrev").disabled=calDay<=-BACK;$("calNext").disabled=calDay>=AHEAD;$("calNow").disabled=calDay===0;
+  renderCalLegend(ids);
+  const timed=[],loose=[];
+  ids.forEach((uid,rank)=>{if(calHide.has(uid))return;tasksOf(uid,k).forEach(t=>{
+    (t.time?timed:loose).push({uid,rank,t,start:t.time?Number(t.time.slice(0,2))*60+Number(t.time.slice(3)):0});});});
+  timed.sort((a,b)=>a.start-b.start||a.rank-b.rank);
+  let lo=7,hi=21;
+  timed.forEach(e=>{lo=Math.min(lo,Math.floor(e.start/60));hi=Math.max(hi,Math.min(23,Math.floor((e.start+Math.max(e.t.mins,1)-1)/60)));});
+  if(calAdd!=null){lo=Math.min(lo,calAdd);hi=Math.max(hi,calAdd);}
+  const nowH=calDay===0?new Date().getHours():-1;
+  if(nowH>=0){lo=Math.min(lo,nowH);hi=Math.max(hi,nowH);}
+  const hm=m=>pad(Math.floor(m/60)%24)+":"+pad(m%60);
+  const chip=e=>{
+    const done=e.t.status==="done",doing=e.t.status==="doing",range=e.t.time?e.t.time+(e.t.mins?"–"+hm(e.start+e.t.mins):""):"";
+    return h("button",{class:"cal-ev"+(done?" done":""),type:"button",style:"background:"+colorOf(e.uid),
+      "aria-label":realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":""),
+      onclick:()=>{view=e.uid;sel=calDay>=0&&calDay<=AHEAD?k:today;mode="plan";render();}},
+      h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
+      h("span",{class:"ev"},(range||done||doing)&&h("small",null,[range,done?"Done":doing?"In progress":""].filter(Boolean).join(" · ")),h("b",null,e.t.text)));
+  };
+  const rows=[];
+  if(loose.length)rows.push(h("div",{class:"hr"},h("span",{class:"hh"},"Any time"),h("div",{class:"slot"},...loose.map(chip)),h("span")));
+  for(let hr=lo;hr<=hi;hr++){
+    const starts=timed.filter(e=>Math.floor(e.start/60)===hr);
+    const running=timed.filter(e=>e.t.mins&&Math.floor(e.start/60)<hr&&e.start+e.t.mins>hr*60);
+    const adding=canAdd&&calAdd===hr;let form=null;
+    if(adding){
+      const txt=h("input",{type:"text",id:"calAddText","data-key":"ca:text",maxlength:"120",placeholder:"Dentist, team call, gym…",oninput:e=>{drafts["ca:text"]=e.target.value;}});
+      const tim=h("input",{type:"time",id:"calAddTime","data-key":"ca:time",required:true,oninput:e=>{drafts["ca:time"]=e.target.value;}});
+      txt.value=drafts["ca:text"]||"";tim.value=drafts["ca:time"]||pad(hr)+":00";
+      form=h("form",{class:"cal-add",autocomplete:"off",onsubmit:e=>{e.preventDefault();addFromCalendar(k);}},
+        h("label",{class:"sr",for:"calAddText"},"What is it"),txt,
+        h("label",{class:"sr",for:"calAddTime"},"Start time"),tim,
+        h("label",{class:"sr",for:"calAddLen"},"How long it will take"),
+        lenSelect("calAddLen",drafts["ca:len"],e=>{drafts["ca:len"]=e.target.value;},"ca:len"),
+        h("button",{class:"btn small primary",type:"submit"},"Add"),
+        h("button",{class:"btn small",type:"button",onclick:()=>{calAdd=null;renderCalendar();}},"Cancel"));
+    }
+    rows.push(h("div",{class:"hr"+(hr===nowH?" now":"")},
+      h("span",{class:"hh"},pad(hr)+":00",hr===nowH?h("small",null,"now"):null),
+      h("div",{class:"slot"},...starts.map(chip),
+        ...running.map(e=>h("span",{class:"cal-cont",style:"border-color:"+colorOf(e.uid)},initials(e.uid)+" · "+e.t.text+" · until "+hm(e.start+e.t.mins))),form),
+      canAdd&&!adding?h("button",{class:"iconbtn addslot",type:"button","aria-label":"Add something at "+pad(hr)+":00",
+        onclick:()=>{calAdd=hr;drafts["ca:text"]="";drafts["ca:time"]=pad(hr)+":00";drafts["ca:len"]="0";renderCalendar();const i=$("calAddText");if(i)i.focus();}},ic("plus",18)):h("span")));
+  }
+  // Keep the caret where it was if the grid is rebuilt while someone is typing in the add form.
+  const grid=$("calGrid"),act=document.activeElement,fkey=act&&grid.contains(act)&&act.dataset?act.dataset.key:"",caret=fkey?act.selectionStart:0;
+  grid.replaceChildren(...rows);
+  if(fkey){const el=grid.querySelector('[data-key="'+fkey+'"]');if(el){el.focus();try{el.setSelectionRange(caret,caret);}catch(e){}}}
+}
+function addFromCalendar(k){
+  const text=String(drafts["ca:text"]||"").replace(/\s+/g," ").trim().slice(0,120),time=String(drafts["ca:time"]||""),len=Math.min(600,Math.max(0,Number(drafts["ca:len"])||0));
+  if(!text){toast("Give it a name first.");const i=$("calAddText");if(i)i.focus();return;}
+  if(!/^\d\d:\d\d$/.test(time)){toast("Pick a start time.");return;}
+  const d=myDay(k);
+  if(d.tasks.length>=30){note("30 is the limit for one day. Finish or remove something first.");return;}
+  // A calendar entry is an ordinary task with a time, so it shows up in the plan for that day too.
+  d.tasks.push({id:Math.random().toString(36).slice(2,10),text:text,time:time,mins:len,status:"todo",startedAt:0,doneAt:0,pomos:0});
+  calAdd=null;delete drafts["ca:text"];delete drafts["ca:time"];delete drafts["ca:len"];
+  saveDay(k);toast("Added to your plan for "+dayWords(k)+".");
+}
+function renderCalWeek(){
+  const start=shift(today,-weekdayIdx+calOff*7),first=shift(today,-BACK),last=shift(today,AHEAD);
   const fmt=k=>keyDate(k).toLocaleDateString(undefined,{day:"numeric",month:"short"});
   $("calTitle").textContent=(calOff===0?"This week":calOff===1?"Next week":calOff===-1?"Last week":"Week of")+" · "+fmt(start)+" – "+fmt(shift(start,6));
   $("calPrev").disabled=calOff<=calMin;$("calNext").disabled=calOff>=calMax;$("calNow").disabled=calOff===0;
   const ids=joinOrder();
-  $("calLegend").replaceChildren(...ids.map(uid=>h("button",{class:"legend-btn",type:"button","aria-pressed":calHide.has(uid)?"false":"true",
-    "aria-label":"Show "+realName(uid),
-    onclick:()=>{if(calHide.has(uid))calHide.delete(uid);else calHide.add(uid);renderCalendar();}},avatar(uid,32),nm(uid))));
+  renderCalLegend(ids);
   const cols=[];
   for(let i=0;i<7;i++){
     const k=shift(start,i),d=keyDate(k),inRange=k>=first&&k<=last,evs=[];
     if(inRange)ids.forEach((uid,rank)=>{if(!calHide.has(uid))tasksOf(uid,k).forEach(t=>evs.push({uid,rank,t}));});
     evs.sort((a,b)=>(a.t.time||"99").localeCompare(b.t.time||"99")||a.rank-b.rank);
     cols.push(h("div",{class:"cal-day"+(k===today?" today":"")+(inRange?"":" off")},
-      h("h3",null,d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate(),k===today?h("span",null,"Today"):null),
+      h("h3",null,inRange?h("button",{class:"linkbtn",type:"button","aria-label":"Open "+dayName(k,true)+" hour by hour",onclick:()=>openDay(k,"calendar")},d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate())
+        :d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate(),k===today?h("span",null,"Today"):null),
       ...evs.map(e=>{
         const done=e.t.status==="done",doing=e.t.status==="doing";
         return h("button",{class:"cal-ev"+(done?" done":""),type:"button",style:"background:"+colorOf(e.uid),
@@ -1078,17 +1452,27 @@ function renderChrome(){
   const own=mine();
   $("addWrap").hidden=!(ready&&own);
   $("settings").hidden=!(ready&&own);
+  $("meAvatar").replaceChildren(avatar(me.uid,36));
+  $("meBtn").replaceChildren(avatar(me.uid,34));$("meBtn").hidden=!ready;
   $("buddy").hidden=!(ready&&!own);
   if(!own){
     const m=members[view];
     $("buddyTitle").textContent="Check up on "+realName(view);
     $("buddyHint").textContent=(m&&m.style?realName(view)+" prefers "+STYLES[m.style]+". ":"")+"A nudge asks how it's going (On it, Stuck, On a break). A cheer is a pat on the back they can thank you for.";
     $("buddyCal").href=calLink("Check on my Pact buddies",today,"15:00",10,true);
+    // Their preference shapes this panel: note ideas in their tone, and for "mostly cheers" the cheer comes first.
+    const style=(m&&m.style)||"",row=$("nudgeBtn").parentNode,lead=style==="cheer"?$("cheerBtn"):$("nudgeBtn");
+    if(row.firstElementChild!==lead)row.prepend(lead);
+    $("nudgeBtn").classList.toggle("primary",style!=="cheer");
+    if(ideasFor!==view+"|"+style){
+      ideasFor=view+"|"+style;nudgeArm="";
+      $("noteIdeas").replaceChildren(...toneOf(view).notes.map(t=>h("button",{class:"chip",type:"button",onclick:()=>{const i=$("nudgeMsg");i.value=t;i.focus();}},t)));
+    }
   }
 }
 function render(){
   if(!members[view])view=me.uid;
-  renderChrome();renderPeople();renderBanner();renderProfile();renderNow();renderCarry();renderDays();renderList();renderFeed();renderStats();renderRoster();
+  renderChrome();renderPeople();renderBanner();renderProfile();renderNow();renderCarry();renderDays();renderList();renderFeed();renderStats();renderInsights();renderRoster();
   if(mode==="calendar")renderCalendar();
 }
 
@@ -1111,6 +1495,12 @@ function popup(title,body){try{if("Notification" in window&&Notification.permiss
 async function sendNudge(kind){
   const status=$("buddyStatus"),input=$("nudgeMsg"),msg=input.value.trim().slice(0,140),to=view;
   if(to===me.uid)return;
+  // Someone who asked for "mostly cheers" can still be nudged, but it takes a second, deliberate tap.
+  if(kind==="nudge"&&members[to]&&members[to].style==="cheer"&&nudgeArm!==to){
+    nudgeArm=to;status.textContent=realName(to)+" asked for mostly cheers. Tap Send a nudge again if you still want to nudge.";
+    setTimeout(()=>{if(nudgeArm===to)nudgeArm="";},8000);return;
+  }
+  nudgeArm="";
   const btns=[$("nudgeBtn"),$("cheerBtn")];btns.forEach(x=>x.disabled=true);
   try{
     await addDoc(col("nudges"),{day:today,from:me.uid,to:to,kind:kind,msg:msg,at:Date.now(),reply:""});
@@ -1120,7 +1510,7 @@ async function sendNudge(kind){
 }
 
 /* ---------- circle lifecycle ---------- */
-function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};edit=null;mode="plan";calOff=0;calHide.clear();openThreads.clear();$("streakBadge").hidden=true;}
+function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};edit=null;mode="plan";calOff=0;calDay=0;calAdd=null;calView="day";calHide.clear();openThreads.clear();pomoEls=null;$("streakBadge").hidden=true;$("meBtn").hidden=true;}
 function goHome(msg){stopAll();
   // Forget the saved circle only if it is the one that just failed; another tab may be using a different one.
   if(store.get("pact.gid","")===gid)store.set("pact.gid","");
@@ -1158,14 +1548,14 @@ function start(){
     renderProfileForm();
     render();
   },fail));
-  unsubs.push(onSnapshot(query(col("days"),where("day",">=",shift(today,-BACK)),where("day","<=",shift(today,HORIZON))),snap=>{
+  unsubs.push(onSnapshot(query(col("days"),where("day",">=",shift(today,-BACK)),where("day","<=",shift(today,AHEAD))),snap=>{
     const fresh={};snap.forEach(d=>{if(/^.+_\d{4}-\d\d-\d\d$/.test(d.id))fresh[d.id]=cleanDay(d.data(),d.id);});
     for(const k in days)if(busy(k))fresh[k]=days[k];
     days=fresh;ready=true;render();
   },fail));
   // Nudges, cheers and task comments share one collection. Nudges and cheers matter for today only;
   // a comment carries its task's day and id, and is shown for as long as that day is on screen.
-  unsubs.push(onSnapshot(query(col("nudges"),where("day",">=",shift(today,-BACK)),where("day","<=",shift(today,HORIZON))),snap=>{
+  unsubs.push(onSnapshot(query(col("nudges"),where("day",">=",shift(today,-BACK)),where("day","<=",shift(today,AHEAD))),snap=>{
     const list=[],cm={};
     snap.forEach(d=>{
       const x=d.data()||{};
@@ -1218,12 +1608,39 @@ function wire(){
     catch(err){$("joinMsg").textContent="Couldn't join. Check your connection and try again.";}
   });
   $("inviteBtn").addEventListener("click",()=>copyText(location.origin+location.pathname+"?g="+gid,$("inviteStatus"),"Invite link copied. Anyone who opens it can join this circle, so send it only to your buddies."));
-  $("addForm").addEventListener("submit",e=>{e.preventDefault();const i=$("addInput");if(!mine()||!i.value.trim())return;addTask(i.value);i.value="";i.focus();});
+  $("addLenSlot").replaceWith(lenSelect("addLen",0));
+  $("addForm").addEventListener("submit",e=>{e.preventDefault();const i=$("addInput"),l=$("addLen");if(!mine()||!i.value.trim())return;addTask(i.value,l.value);i.value="";l.value="0";i.focus();});
+  $("meBtn").addEventListener("click",()=>{
+    view=me.uid;sel=today;mode="plan";render();
+    const d=$("settings");d.open=true;d.scrollIntoView({block:"start"});d.querySelector("summary").focus();
+  });
   $("tabPlan").addEventListener("click",()=>{mode="plan";render();});
   $("tabCal").addEventListener("click",()=>{mode="calendar";render();});
-  $("calPrev").addEventListener("click",()=>{calOff=Math.max(calMin,calOff-1);renderCalendar();});
-  $("calNext").addEventListener("click",()=>{calOff=Math.min(calMax,calOff+1);renderCalendar();});
-  $("calNow").addEventListener("click",()=>{calOff=0;renderCalendar();});
+  const calStep=n=>()=>{
+    calAdd=null;
+    if(calView==="day")calDay=n?Math.min(AHEAD,Math.max(-BACK,calDay+n)):0;
+    else calOff=n?Math.min(calMax,Math.max(calMin,calOff+n)):0;
+    renderCalendar();
+  };
+  $("calPrev").addEventListener("click",calStep(-1));
+  $("calNext").addEventListener("click",calStep(1));
+  $("calNow").addEventListener("click",calStep(0));
+  $("calToPlan").addEventListener("click",()=>openDay(shift(today,calDay),"plan"));
+  for(const id of ["calDate","goDate"]){$(id).min=shift(today,id==="calDate"?-BACK:0);$(id).max=shift(today,AHEAD);}
+  $("calDate").addEventListener("change",e=>{
+    const k=e.target.value;if(!/^\d{4}-\d\d-\d\d$/.test(k))return;
+    const n=Math.min(AHEAD,Math.max(-BACK,dayDiff(k)));calAdd=null;
+    if(calView==="day")calDay=n;else calOff=Math.min(calMax,Math.max(calMin,Math.floor((n+weekdayIdx)/7)));
+    renderCalendar();
+  });
+  $("goDate").addEventListener("change",e=>{
+    const k=e.target.value;if(!/^\d{4}-\d\d-\d\d$/.test(k))return;
+    const n=dayDiff(k);if(n<0||n>AHEAD){toast("Pick a date from today up to "+AHEAD+" days ahead.");e.target.value=sel;return;}
+    sel=k;$("addHint").textContent="";render();
+  });
+  $("dayToCal").addEventListener("click",()=>openDay(sel,"calendar"));
+  $("calViewDay").addEventListener("click",()=>{calView="day";renderCalendar();});
+  $("calViewWeek").addEventListener("click",()=>{calView="week";calAdd=null;renderCalendar();});
   $("nudgeBtn").addEventListener("click",()=>sendNudge("nudge"));
   $("cheerBtn").addEventListener("click",()=>sendNudge("cheer"));
   $("copyDay").addEventListener("click",()=>copyText("My plan\n"+planText(sel),$("shareStatus"),"Copied "+dayName(sel,true)+"."));
@@ -1244,7 +1661,22 @@ function wire(){
     goHome("You left the circle.");
   });
   $("selfEvery").value=store.get("pact.self","25");
-  $("selfEvery").addEventListener("change",e=>{store.set("pact.self",e.target.value);lastPrompt=Date.now();});
+  $("selfEvery").addEventListener("change",e=>{
+    const v=Math.min(240,Math.max(0,Math.round(Number(e.target.value)||0)));
+    e.target.value=String(v);store.set("pact.self",String(v));lastPrompt=Date.now();selfPrompt=false;renderBanner();
+    toast(v?"You'll be asked every "+v+(v===1?" minute":" minutes")+" while tasks are open.":"The “still on it?” check is off.");
+  });
+  $("taskLead").value=store.get("pact.lead","10");
+  $("taskLead").addEventListener("change",e=>{
+    const raw=String(e.target.value).trim();
+    if(raw===""){store.set("pact.lead","");toast("Task reminders are off.");return;}
+    const v=Math.min(120,Math.max(0,Math.round(Number(raw)||0)));e.target.value=String(v);store.set("pact.lead",String(v));
+    toast(v?"You'll be reminded "+v+(v===1?" minute":" minutes")+" before a timed task.":"You'll be reminded when a timed task starts.");
+  });
+  $("selfTest").addEventListener("click",()=>{
+    selfPrompt=true;freshBanner=true;beep();popup("Still on it?","This is a test from Pact");renderBanner();
+    $("banner").scrollIntoView({block:"center"});
+  });
   $("calPref").value=store.get("pact.cal","google");
   $("calPref").addEventListener("change",e=>{store.set("pact.cal",e.target.value);render();});
   $("soundBtn").addEventListener("click",e=>{
@@ -1263,11 +1695,29 @@ function wire(){
     if(dayKey(new Date())!==today&&!$("addInput").value&&!$("nudgeMsg").value){location.reload();return;}
     if(!ready||!me)return;
     const mins=Number($("selfEvery").value)||0;
-    if(mins&&!selfPrompt&&Date.now()-lastPrompt>=mins*60000&&tasksOf(me.uid,today).some(t=>t.status!=="done")){
-      selfPrompt=true;freshBanner=true;beep();popup("Still on it?","Quick check from Pact");renderBanner();
+    // No "still on it?" while a focus timer is running; the timer is the check.
+    if(mins&&!selfPrompt&&!focusOf(me.uid)&&Date.now()-lastPrompt>=mins*60000&&tasksOf(me.uid,today).some(t=>t.status!=="done")){
+      const on=tasksOf(me.uid,today).find(t=>t.status==="doing");
+      selfPrompt=true;freshBanner=true;beep();popup(toneOf(me.uid).self(on?on.text:""),"Quick check from Pact");renderBanner();
     }
-    renderNow();
+    // Reminder for my own timed tasks: once each, shortly before (or at) the start, while the page is open.
+    const lead=store.get("pact.lead","10");
+    if(lead!==""){
+      const L=Number(lead)||0,n=new Date(),nowM=n.getHours()*60+n.getMinutes();
+      tasksOf(me.uid,today).forEach(t=>{
+        if(!t.time||t.status!=="todo")return;
+        const start=Number(t.time.slice(0,2))*60+Number(t.time.slice(3)),key=today+"|"+t.id+"|"+t.time;
+        if(nowM>=start-L&&nowM<=start+1&&!reminded.has(key)){
+          reminded.add(key);beep();
+          const msg=(start-nowM>0?"In "+(start-nowM)+" min: ":"Starting now: ")+t.text+" ("+t.time+")";
+          toast(msg,9000);popup("Coming up",msg);
+        }
+      });
+    }
+    // Refresh "12 min in", unless the keyboard is on a button inside the card (rebuilding would drop it).
+    if(!$("now").contains(document.activeElement))renderNow();
   },30000);
+  setInterval(tickFocus,1000);
 }
 async function signIn(fn){
   const m=$("signinMsg");m.textContent="";
