@@ -469,7 +469,7 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
         </div>
         <div class="chips" id="calLegend" role="group" aria-label="Show or hide people"></div>
         <div class="cal-grid" id="calGrid"></div>
-        <p class="muted">Everyone's plans in one place, from four weeks back to two months ahead. In the Day view, press + on an hour to add an appointment; it goes into your plan for that day as well. Tap a task to open that person's plan.</p>
+        <p class="muted">Everyone's plans in one place, from a month back to two months ahead. In the Day view, press + on an hour to add an appointment; it goes into your plan for that day as well. Tap a task to open that person's plan.</p>
       </section>
 
       <div class="cols" id="planView">
@@ -588,11 +588,12 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
             <p class="muted" id="streak"></p>
           </section>
 
-          <section class="panel" id="insights">
-            <h2 id="insightsTitle">Insights</h2>
+          <section class="panel" id="insights" hidden>
+            <h2 id="insightsTitle">Month in review</h2>
             <ul class="tips" id="tips"></ul>
             <h3>The circle</h3>
             <ul class="tips" id="groupTips"></ul>
+            <p class="hint">This review appears on the last day of each month.</p>
           </section>
 
           <section class="panel">
@@ -679,7 +680,7 @@ const pad=n=>String(n).padStart(2,"0");
 const dayKey=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const keyDate=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d);};
 const shift=(k,n)=>{const d=keyDate(k);return dayKey(new Date(d.getFullYear(),d.getMonth(),d.getDate()+n));};
-const today=dayKey(new Date()),yesterday=shift(today,-1),HORIZON=7,BACK=27,AHEAD=60;   // day chips show a week; plans can be made up to AHEAD days out
+const today=dayKey(new Date()),yesterday=shift(today,-1),HORIZON=7,BACK=30,AHEAD=60;   // day chips show a week; plans can be made up to AHEAD days out
 const hhmm=ts=>{const d=new Date(ts);return pad(d.getHours())+":"+pad(d.getMinutes());};
 function dayName(k,long){
   if(k===today)return "Today";if(k===shift(today,1))return "Tomorrow";
@@ -1192,20 +1193,22 @@ function renderStats(){
   badge.setAttribute("aria-label","Your streak: "+mineStreak+(mineStreak===1?" day":" days"));
   badge.hidden=!ready||!mineStreak;
 }
-/* Insights: plain counting over the four weeks of plans already loaded. Past days only, so a day
-   still in progress does not drag the numbers down. Each one ends in something to try. */
+/* Month in review: shown only on the last day of the month. Plain counting over this month's plans,
+   up to yesterday, so the day still in progress does not drag the numbers down. Each one ends in something to try. */
+const monthEnd=k=>{const d=keyDate(k);return new Date(d.getFullYear(),d.getMonth()+1,0).getDate()===d.getDate();};
+const monthSoFar=Math.min(BACK,keyDate(today).getDate()-1);   // days of this month before today
 function insightsFor(uid){
   const own=uid===me.uid,S=own?"You":realName(uid),P=own?"your":realName(uid)+"'s",out=[];
   const past=[];
-  for(let i=1;i<=BACK;i++){const k=shift(today,-i),ts=tasksOf(uid,k);if(ts.length)past.push({i,k,ts,done:ts.filter(t=>t.status==="done").length});}
+  for(let i=1;i<=monthSoFar;i++){const k=shift(today,-i),ts=tasksOf(uid,k);if(ts.length)past.push({i,k,ts,done:ts.filter(t=>t.status==="done").length});}
   if(past.length<3){
-    out.push({icon:"clock",text:"Insights show up after three days with a plan"+(past.length?" ("+past.length+" so far)":"")+"."});
+    out.push({icon:"clock",text:"A review needs at least three days with a plan this month. There "+(past.length===1?"was 1":"were "+past.length)+"."});
     return out;
   }
   const pct=(a,b)=>Math.round(a/b*100);
   const planned=past.reduce((n,d)=>n+d.ts.length,0),done=past.reduce((n,d)=>n+d.done,0),rate=done/planned;
   const perDay=planned/past.length,donePerDay=done/past.length;
-  out.push({icon:"target",text:S+" finished "+done+" of "+planned+" planned tasks over "+past.length+" days ("+pct(done,planned)+"%)."});
+  out.push({icon:"target",text:"This month "+(own?"you":S)+" finished "+done+" of "+planned+" planned tasks ("+pct(done,planned)+"%), across "+past.length+" days with a plan."});
   // trend: last 7 days against the 7 before
   const span=(a,b)=>{const ds=past.filter(d=>d.i>=a&&d.i<=b),p=ds.reduce((n,d)=>n+d.ts.length,0);return p>=3?ds.reduce((n,d)=>n+d.done,0)/p:null;};
   const now7=span(1,7),before=span(8,14);
@@ -1240,23 +1243,26 @@ function insightsFor(uid){
   // days where nothing got finished
   const zero=past.filter(d=>!d.done).length;
   if(zero>=3&&zero/past.length>=.3)out.push({icon:"pause",text:"On "+zero+" of "+past.length+" planned days nothing was finished.",tip:"On a hard day, pick one task and start a 15-minute focus timer."});
-  let blocks=0;for(let i=0;i<7;i++)tasksOf(uid,shift(today,-i)).forEach(t=>{blocks+=t.pomos||0;});
-  if(blocks)out.push({icon:"timer",text:S+" completed "+blocks+" focus "+(blocks===1?"block":"blocks")+" in the last 7 days."});
+  let blocks=0;for(let i=0;i<=monthSoFar;i++)tasksOf(uid,shift(today,-i)).forEach(t=>{blocks+=t.pomos||0;});
+  if(blocks)out.push({icon:"timer",text:S+" completed "+blocks+" focus "+(blocks===1?"block":"blocks")+" this month."});
   return out;
 }
 function groupInsights(){
   const ids=Object.keys(members),out=[];let p=0,d=0;
-  ids.forEach(u=>{for(let i=0;i<7;i++){const k=shift(today,-i);p+=tasksOf(u,k).length;d+=doneOf(u,k);}});
-  out.push({icon:"users",text:p?"Together the circle finished "+d+" of "+p+" planned tasks in the last 7 days ("+Math.round(d/p*100)+"%).":"Nobody in the circle has planned anything in the last 7 days."});
-  const withPlan=ids.filter(u=>tasksOf(u,today).length).length;
-  out.push({icon:"calendar",text:withPlan+" of "+ids.length+(ids.length===1?" person has":" people have")+" a plan for today.",tip:withPlan<ids.length&&ids.length>1?"A cheer or a nudge can help the others get started.":""});
+  const active=new Set();
+  ids.forEach(u=>{for(let i=0;i<=monthSoFar;i++){const k=shift(today,-i),n=doneOf(u,k);p+=tasksOf(u,k).length;d+=n;if(n)active.add(u);}});
+  out.push({icon:"users",text:p?"Together the circle finished "+d+" of "+p+" planned tasks this month ("+Math.round(d/p*100)+"%).":"Nobody in the circle planned anything this month."});
+  if(p)out.push({icon:"check",text:active.size+" of "+ids.length+(ids.length===1?" person":" people")+" finished at least one task this month.",tip:active.size<ids.length?"A cheer or a nudge can help the others get going next month.":""});
   const lead=ids.map(u=>({u,s:streakOf(u)})).sort((a,b)=>b.s-a.s)[0];
   if(lead&&lead.s>=2)out.push({icon:"flame",text:"Longest streak right now: "+nm(lead.u)+", "+lead.s+" days in a row."});
   return out;
 }
 function renderInsights(){
   const li=x=>h("li",null,h("span",{class:"dot"},ic(x.icon,16)),h("span",null,x.text,x.tip?h("b",null," "+x.tip):null));
-  $("insightsTitle").textContent=mine()?"Insights for you":"Insights for "+realName(view);
+  const box=$("insights");
+  if(!ready||!monthEnd(today)){box.hidden=true;return;}   // once a month, on its last day
+  box.hidden=false;
+  $("insightsTitle").textContent=mine()?"Your month in review":realName(view)+"'s month in review";
   $("tips").replaceChildren(...insightsFor(view).map(li));
   $("groupTips").replaceChildren(...groupInsights().map(li));
 }

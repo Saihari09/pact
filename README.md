@@ -82,9 +82,10 @@ exactly what you see, look for the closest match.
   the wording of nudges and self-checks you receive, the note ideas your
   buddies are offered, and, for "mostly cheers", the cheer button comes first
   and a nudge takes a second tap.
-- **Insights.** Each person gets a few plain observations from the last four
-  weeks (completion rate, strongest weekday, timed against untimed tasks,
-  repeated tasks) with something to try, plus a short summary for the circle.
+- **Month in review.** On the last day of each month, and only then, each
+  person gets a few plain observations about that month (completion rate,
+  strongest weekday, timed against untimed tasks, repeated tasks) with
+  something to try, plus a short summary for the circle.
 - **Planning ahead.** Pick a day in the day row, or end a task with a day:
   `Gym 18:00 45m fri`.
 - **Profile.** Under Your profile you can add a one-line goal, up to four
