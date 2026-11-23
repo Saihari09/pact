@@ -67,9 +67,13 @@ exactly what you see, look for the closest match.
   length also shows in the hours it runs through, so others can see when you
   are taken. The Week view shows seven days side by side. Tap a name to hide
   or show that person, and tap a task to open that person's plan.
+- **Scheduling.** The add form has optional date, time and length boxes;
+  leave the time empty for a task you can do any time. In the calendar's Day
+  view you can drag one of your own tasks onto an hour to schedule it, or
+  onto "Any time" to take its time off. Pressing the task and typing a time
+  does the same without dragging.
 - **Dates.** Dates are links. Tap a day in the progress grid or a heading in
-  the Week view to open it. "Plan another date" lets you plan up to 60 days
-  ahead.
+  the Week view to open it. "Show another day" and the add form's date box reach up to 60 days ahead.
 - **Task length and focus timer.** Pick a length when adding or editing a
   task. A task in progress has a focus timer: 15, 25 or 50 minutes (with a
   3, 5 or 10 minute break), or the task's own length. Buddies see that you
