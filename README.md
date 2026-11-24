@@ -56,6 +56,19 @@ exactly what you see, look for the closest match.
 - **Nudges and cheers.** Pick a person at the top, then Send a nudge or Send a
   cheer. It appears on their screen with one-tap replies: a nudge asks how it
   is going (On it, Stuck, On a break), a cheer can be thanked.
+- **Circle chat.** A small chat for the whole circle, in the side column
+  (the Chat button at the top jumps to it and shows how many messages are
+  new). Messages are up to 140 characters, are kept for about four weeks,
+  and you can delete your own. A new message beeps and, with notifications
+  on, shows on the device.
+- **Stuck? Ask for a call.** Under the chat, "I'm stuck · ask for a call"
+  sends a call-out to the circle with an optional note and an optional
+  Google Meet link. Everyone else gets a chime, a notification and a prompt
+  with Join on Google Meet, Reply in chat and Not now; the Join button stays
+  in the chat for two hours. Pact cannot create the meeting itself: press
+  "Start a new Google Meet", copy the meeting's address and paste it in. The
+  link is remembered on that device, so a reusable link needs pasting once.
+  Only meet.google.com links are accepted.
 - **Editing.** Press Edit on one of your tasks and retype it. The same
   shorthand works as when adding: `Gym 18:00 45m fri` sets the time, the
   length and the day.
