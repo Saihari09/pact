@@ -330,6 +330,14 @@ form.cal-add input[type=time],form.cal-add select{flex:0 0 auto;width:auto;min-h
 .cal-ev.dragging,.tg-ev.dragging{opacity:.45}
 body.dragging-cal,body.dragging-cal *{cursor:grabbing!important;-webkit-user-select:none;user-select:none}
 .cal-day.drop{outline:3px dashed var(--primary);outline-offset:1px;background:var(--amber-soft)}
+/* select, copy, paste */
+.cal-bar{position:sticky;top:8px;z-index:6;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:8px 12px;font:700 14px/1.3 var(--body);box-shadow:var(--shadow);margin-bottom:8px}
+.cal-bar span{margin-right:auto}
+#calSelBtn[aria-pressed=true]{background:var(--ink-btn);color:var(--on-ink-btn);border-color:transparent}
+.cal-ev{position:relative}
+.cal-ev.sel,.tg-ev.sel{outline:3px solid var(--ink);outline-offset:2px;z-index:2}
+.cal-ev.sel::before,.tg-ev.sel::before{content:"✓";position:absolute;right:-6px;top:-8px;width:22px;height:22px;border-radius:50%;background:var(--ink-btn);color:var(--on-ink-btn);font:900 14px/22px var(--body);text-align:center;z-index:3}
+.tg-ev.sel{overflow:visible}
 .drag-float{position:fixed;z-index:60;pointer-events:none;max-width:220px;padding:8px 12px;border-radius:12px;font:700 13px/1.3 var(--body);color:#0F172A;box-shadow:var(--shadow);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* day view: time grid */
 .tg{position:relative;margin-top:4px}
@@ -551,11 +559,13 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
             <label class="sr" for="calDate">Go to a date</label>
             <input type="date" id="calDate">
             <button class="btn small" id="calToPlan" type="button">Plan this day</button>
+            <button class="btn small" id="calSelBtn" type="button" aria-pressed="false">Select</button>
           </div>
         </div>
         <div class="chips" id="calLegend" role="group" aria-label="Show or hide people"></div>
+        <div class="cal-bar" id="calBar" hidden></div>
         <div class="cal-grid" id="calGrid"></div>
-        <p class="muted">Everyone's plans in one place, from a month back to two months ahead. In the Day view a task with a time is a block as tall as its length. Press + or an empty spot to add an appointment; it goes into your plan for that day too. Your own blocks: drag one to another time, drag its bottom edge to change the length, or press it and type both. In the Week view, drag one of your tasks onto another day to move it. On a phone, drag by the six dots. Pressing someone else's task opens their plan.</p>
+        <p class="muted">Everyone's plans in one place, from a month back to two months ahead. In the Day view a task with a time is a block as tall as its length. Press + or an empty spot to add an appointment; it goes into your plan for that day too. Your own blocks: drag one to another time, drag its bottom edge to change the length, or press it and type both. In the Week view, drag one of your tasks onto another day to move it. On a phone, drag by the six dots. Pressing someone else's task opens their plan. To copy tasks, press Select, press the tasks you want (yours or a buddy's), press Copy, then paste them into any day from today on.</p>
       </section>
 
       <div class="cols" id="planView">
@@ -807,6 +817,8 @@ let calView="day";           // "day" (hour by hour) or "week"
 let calDay=0;                // day shown in the day view, 0 = today
 let calAdd=null;             // hour whose "add" form is open in the day view
 let calEdit=null;            // id of my task whose time is being changed in the day view
+let calSelect=false,calClip=[];   // calendar: select mode is on; the copied tasks [{text,time,mins}]
+const calSel=new Set();           // selected calendar entries, as "uid|day|taskId"
 let calDrag=false,justDragged=false;   // a calendar entry is being dragged; one was just dropped
 let addDateFor="";           // the day the add form's date box was last set to
 const openMore=new Set();    // ids of tasks whose extra actions are showing
@@ -1561,8 +1573,55 @@ function renderCalLegend(ids){
     "aria-label":"Show "+realName(uid),
     onclick:()=>{if(calHide.has(uid))calHide.delete(uid);else calHide.add(uid);renderCalendar();}},avatar(uid,32),nm(uid))));
 }
+/* Select, copy and paste in the calendar. In select mode a press on a task ticks it instead of opening it
+   (Ctrl or Cmd + click does the same without the mode). Copy keeps the ticked tasks' words, time and length;
+   Paste adds them as new to-do tasks to one of my days. Anyone's tasks can be copied; pasting is always into my plan. */
+const ekey=(e,k)=>e.uid+"|"+k+"|"+e.t.id;
+function calPick(ev,e,k){
+  if(!calSelect&&!(ev&&(ev.ctrlKey||ev.metaKey)))return false;
+  const key=ekey(e,k);calSelect=true;calEdit=null;calAdd=null;
+  if(calSel.has(key))calSel.delete(key);else calSel.add(key);
+  renderCalendar();const el=$("calGrid").querySelector('[data-ek="'+key+'"]');if(el)el.focus();
+  return true;
+}
+function calCopy(){
+  const got=[];
+  calSel.forEach(key=>{const p=key.split("|"),t=tasksOf(p[0],p[1]).find(x=>x.id===p[2]);if(t)got.push({text:t.text,time:t.time,mins:t.mins});});
+  if(!got.length){toast("Select at least one task first.");return;}
+  got.sort((a,b)=>(a.time||"99").localeCompare(b.time||"99"));
+  calClip=got;calSel.clear();calSelect=false;renderCalendar();
+  toast(got.length+(got.length===1?" task":" tasks")+" copied. Open a day and paste.",5000);
+}
+// Paste into one of my days. Without `at`, each task keeps its own time. With `at` (minutes into the day), the
+// earliest timed task lands there and the other timed ones keep their distance from it.
+function calPaste(day,at){
+  if(!calClip.length)return;
+  const d=myDay(day),n=calClip.length;
+  if(d.tasks.length+n>30){toast("That would put more than 30 tasks on "+dayWords(day)+". Remove something there first.",6000);return;}
+  const times=calClip.filter(c=>c.time).map(c=>minsOf(c.time)),move=at!=null&&times.length?at-Math.min(...times):0;
+  calClip.forEach(c=>{
+    const time=c.time?(move?hmOf(Math.max(0,Math.min(1425,minsOf(c.time)+move))):c.time):(at!=null&&!times.length?hmOf(at):"");
+    const t={id:Math.random().toString(36).slice(2,10),text:c.text,time:time,mins:c.mins,status:"todo",startedAt:0,doneAt:0,pomos:0};
+    d.tasks.push(t);placeTimed(d,t);
+  });
+  calAdd=null;saveDay(day);toast("Pasted "+n+(n===1?" task":" tasks")+" into "+dayWords(day)+".");
+}
+function renderCalBar(){
+  const bar=$("calBar"),n=calSel.size,c=calClip.length,day=calView==="day";
+  $("calSelBtn").setAttribute("aria-pressed",calSelect?"true":"false");
+  if(!calSelect&&!c){bar.hidden=true;return;}
+  put(bar,
+    calSelect&&h("span",{role:"status"},n?n+" selected":"Press the tasks you want to copy."),
+    calSelect&&h("button",{class:"btn small primary",type:"button",disabled:n?null:true,onclick:calCopy},"Copy"),
+    calSelect&&h("button",{class:"btn small",type:"button",onclick:()=>{calSelect=false;calSel.clear();renderCalendar();}},"Cancel"),
+    !calSelect&&c&&h("span",{role:"status"},c+" copied."+(day?"":" Press “Paste here” on a day.")),
+    !calSelect&&c&&day&&calDay>=0&&h("button",{class:"btn small primary",type:"button",onclick:()=>calPaste(shift(today,calDay))},"Paste into this day"),
+    !calSelect&&c&&h("button",{class:"btn small",type:"button",onclick:()=>{calClip=[];renderCalendar();}},"Clear copied"));
+  bar.hidden=false;
+}
 function renderCalendar(){
   if(calDrag)return;   // a rebuild would pull the entry out from under the pointer; the drop re-renders
+  renderCalBar();
   const day=calView==="day";
   $("calViewDay").setAttribute("aria-pressed",day?"true":"false");$("calViewWeek").setAttribute("aria-pressed",day?"false":"true");
   $("calPrev").setAttribute("aria-label",day?"Previous day":"Previous week");$("calNext").setAttribute("aria-label",day?"Next day":"Next week");
@@ -1691,9 +1750,9 @@ function renderCalDay(){
   const chip=e=>{
     const own=movable(e);
     // A <button> can't hold the drag handle in every browser, so a movable entry is a focusable element acting as one.
-    const b=h(own?"div":"button",{class:"cal-ev"+(e.t.status==="done"?" done":"")+(isMissed(e.t,k)?" missed":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
+    const b=h(own?"div":"button",{class:"cal-ev"+(e.t.status==="done"?" done":"")+(isMissed(e.t,k)?" missed":"")+(calSel.has(ekey(e,k))?" sel":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,"data-ek":ekey(e,k),"aria-pressed":calSelect?(calSel.has(ekey(e,k))?"true":"false"):null,style:"background:"+colorOf(e.uid),
       "aria-label":say(e,"",own),"aria-expanded":own?(calEdit===e.t.id?"true":"false"):null,
-      onclick:()=>{if(justDragged)return;if(own)openEdit(e);else toPlan(e);}},...inner(e,"",own));
+      onclick:ev=>{if(justDragged||calPick(ev,e,k))return;if(own)openEdit(e);else toPlan(e);}},...inner(e,"",own));
     if(own){
       b.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();b.click();}});
       b.addEventListener("pointerdown",ev=>calDragStart(ev,b,dragTime(e,18)));
@@ -1703,11 +1762,11 @@ function renderCalDay(){
   // A timed task: a block in the grid.
   const block=e=>{
     const own=movable(e),range=e.t.time+(e.t.mins?"–"+hmOf(e.start+e.t.mins):""),ht=Math.max(CAL_MIN,(e.end-e.start)/60*CAL_H-2);
-    const b=h(own?"div":"button",{class:"tg-ev"+(e.t.status==="done"?" done":"")+(isMissed(e.t,k)?" missed":"")+(own?" mine":"")+(e.t.mins?"":" nolen")+(ht<52?" short":""),
-      type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,
+    const b=h(own?"div":"button",{class:"tg-ev"+(e.t.status==="done"?" done":"")+(isMissed(e.t,k)?" missed":"")+(calSel.has(ekey(e,k))?" sel":"")+(own?" mine":"")+(e.t.mins?"":" nolen")+(ht<52?" short":""),
+      type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,"data-ek":ekey(e,k),"aria-pressed":calSelect?(calSel.has(ekey(e,k))?"true":"false"):null,
       style:"background:"+colorOf(e.uid)+";top:"+px(e.start)+"px;height:"+ht+"px;left:calc("+(e.col/e.cols*100)+"% + 1px);width:calc("+(100/e.cols)+"% - 3px)",
       "aria-label":say(e,range,own),"aria-expanded":own?(calEdit===e.t.id?"true":"false"):null,
-      onclick:()=>{if(justDragged)return;if(own)openEdit(e);else toPlan(e);}},...inner(e,range,own));
+      onclick:ev=>{if(justDragged||calPick(ev,e,k))return;if(own)openEdit(e);else toPlan(e);}},...inner(e,range,own));
     if(own){
       const rz=h("span",{class:"rz","aria-hidden":"true",title:"Drag to change the length",onclick:ev=>ev.stopPropagation()});
       rz.addEventListener("pointerdown",ev=>{ev.stopPropagation();calDragStart(ev,b,dragLen(e,b));});
@@ -1744,6 +1803,7 @@ function renderCalDay(){
       h("label",{class:"sr",for:"calAddLen"},"How long it will take"),
       lenSelect("calAddLen",drafts["ca:len"],e=>{drafts["ca:len"]=e.target.value;},"ca:len"),
       h("button",{class:"btn small primary",type:"submit"},"Add"),
+      calClip.length?h("button",{class:"btn small",type:"button",onclick:()=>{const v=tim.value||drafts["ca:time"]||"";calPaste(k,/^\d\d:\d\d$/.test(v)?minsOf(v):calAdd*60);}},"Paste "+calClip.length+" copied at this time"):null,
       h("button",{class:"btn small",type:"button",onclick:()=>{calAdd=null;renderCalendar();}},"Cancel")));
   }
   const rows=[];
@@ -1826,12 +1886,13 @@ function renderCalWeek(){
     cols.push(h("div",{class:"cal-day"+(k===today?" today":"")+(inRange?"":" off"),"data-day":k>=today&&k<=last?k:null},
       h("h3",null,inRange?h("button",{class:"linkbtn",type:"button","aria-label":"Open "+dayName(k,true)+" hour by hour",onclick:()=>openDay(k,"calendar")},d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate())
         :d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate(),k===today?h("span",null,"Today"):null),
+      calClip.length&&!calSelect&&k>=today&&k<=last?h("button",{class:"btn small",type:"button","aria-label":"Paste the copied tasks into "+dayName(k,true),onclick:()=>calPaste(k)},"Paste here"):null,
       ...evs.map(e=>{
         const done=e.t.status==="done",doing=e.t.status==="doing",missed=isMissed(e.t,k),own=e.uid===me.uid&&k>=today&&!done;   // mine, and still open: can move to another day
         const range=e.t.time?e.t.time+(e.t.mins?"–"+hmOf(Number(e.t.time.slice(0,2))*60+Number(e.t.time.slice(3))+e.t.mins):""):"";
-        const b=h(own?"div":"button",{class:"cal-ev"+(done?" done":"")+(missed?" missed":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
+        const b=h(own?"div":"button",{class:"cal-ev"+(done?" done":"")+(missed?" missed":"")+(calSel.has(ekey(e,k))?" sel":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,"data-ek":ekey(e,k),"aria-pressed":calSelect?(calSel.has(ekey(e,k))?"true":"false"):null,style:"background:"+colorOf(e.uid),
           "aria-label":realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":missed?", missed":"")+(own?". Press to open it in your plan. Drag it to another day to move it.":""),
-          onclick:()=>{if(justDragged)return;view=e.uid;sel=k>=today&&k<=last?k:today;mode="plan";render();}},
+          onclick:ev=>{if(justDragged||calPick(ev,e,k))return;view=e.uid;sel=k>=today&&k<=last?k:today;mode="plan";render();}},
           h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
           h("span",{class:"ev"},
             (range||done||doing||missed)&&h("small",null,[range,done?"Done":doing?"In progress":missed?"Missed":""].filter(Boolean).join(" · ")),
@@ -1977,7 +2038,7 @@ async function sendNudge(kind){
 }
 
 /* ---------- circle lifecycle ---------- */
-function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};edit=null;mode="plan";calOff=0;calDay=0;calAdd=null;calEdit=null;calDrag=false;addDateFor="";openMore.clear();calView="day";calHide.clear();openThreads.clear();pomoEls=null;$("streakBadge").hidden=true;$("meBtn").hidden=true;}
+function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};edit=null;mode="plan";calOff=0;calDay=0;calAdd=null;calEdit=null;calDrag=false;calSelect=false;calClip=[];calSel.clear();addDateFor="";openMore.clear();calView="day";calHide.clear();openThreads.clear();pomoEls=null;$("streakBadge").hidden=true;$("meBtn").hidden=true;}
 function goHome(msg){stopAll();
   // Forget the saved circle only if it is the one that just failed; another tab may be using a different one.
   if(store.get("pact.gid","")===gid)store.set("pact.gid","");
@@ -2118,6 +2179,20 @@ function wire(){
   $("dayToCal").addEventListener("click",()=>openDay(sel,"calendar"));
   $("calViewDay").addEventListener("click",()=>{calView="day";renderCalendar();});
   $("calViewWeek").addEventListener("click",()=>{calView="week";calAdd=null;renderCalendar();});
+  $("calSelBtn").addEventListener("click",()=>{calSelect=!calSelect;if(!calSelect)calSel.clear();calEdit=null;calAdd=null;renderCalendar();});
+  // Keyboard: Ctrl/Cmd+C copies the selected calendar tasks, Ctrl/Cmd+V pastes into the day on screen, Esc leaves select mode.
+  document.addEventListener("keydown",e=>{
+    if(mode!=="calendar"||$("app").hidden||!me)return;
+    const a=document.activeElement;
+    if(a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable))return;
+    const mod=e.ctrlKey||e.metaKey,key=String(e.key).toLowerCase();
+    if(mod&&key==="c"&&calSel.size&&!String(getSelection())){e.preventDefault();calCopy();}
+    else if(mod&&key==="v"&&calClip.length){
+      e.preventDefault();
+      if(calView==="day"&&calDay>=0)calPaste(shift(today,calDay));else toast(calView==="day"?"You can only paste into today or a later day.":"Press “Paste here” on the day you want.",5000);
+    }
+    else if(e.key==="Escape"&&calSelect){calSelect=false;calSel.clear();renderCalendar();}
+  });
   $("nudgeBtn").addEventListener("click",()=>sendNudge("nudge"));
   $("cheerBtn").addEventListener("click",()=>sendNudge("cheer"));
   $("copyDay").addEventListener("click",()=>copyText("My plan\n"+planText(sel),$("shareStatus"),"Copied "+dayName(sel,true)+"."));

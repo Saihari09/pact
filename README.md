@@ -81,6 +81,16 @@ exactly what you see, look for the closest match.
     there. Its time and length stay.
   - With a mouse you can grab a task anywhere. On a phone, drag it by the six
     dots (or the bottom edge), so swiping over a task still scrolls the page.
+- **Copy and paste in the calendar.** Press Select, press the tasks you want
+  (your own or a buddy's, on any day in view), then Copy. Paste them into any
+  day from today on: "Paste here" on a day in the Week view, "Paste into this
+  day" in the Day view, or, after pressing + or an empty spot, "Paste at this
+  time", which puts the earliest copied task at that time and keeps the
+  others at the same distance from it. Pasted tasks are new to-do tasks in
+  your own plan with the same words, time and length; the originals stay.
+  The copy is kept until you press Clear copied, so you can paste it into
+  several days. With a keyboard: Ctrl or Cmd + click selects, Ctrl/Cmd+C
+  copies, Ctrl/Cmd+V pastes into the day on screen, Esc leaves Select.
 - **Order of the plan.** The plan and the calendar show the same tasks, so a
   change in one appears in the other. In the plan, timed tasks come first in
   time order and untimed ones follow. To reorder, drag a task's handle (the
