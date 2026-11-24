@@ -317,9 +317,40 @@ form.cal-add input[type=time],form.cal-add select{flex:0 0 auto;width:auto;min-h
 .acts.extra{background:var(--bg2);border-radius:14px;padding:0 4px;margin-left:-6px}
 .task.doing .acts.extra{background:var(--card)}
 @media (hover:hover){.task:hover{border-color:var(--control)}}
-.cal-ev.mine{cursor:grab}
-.cal-ev.mine .ic{margin-left:auto;align-self:center;opacity:.7}
-.cal-ev.dragging{opacity:.45}
+.cal-ev.mine,.tg-ev.mine{cursor:grab;-webkit-user-select:none;user-select:none}
+.grab{margin-left:auto;align-self:stretch;display:grid;place-items:center;min-width:28px;margin-right:-6px;opacity:.7;touch-action:none;flex:none}
+.cal-ev.dragging,.tg-ev.dragging{opacity:.45}
+body.dragging-cal,body.dragging-cal *{cursor:grabbing!important;-webkit-user-select:none;user-select:none}
+.cal-day.drop{outline:3px dashed var(--primary);outline-offset:1px;background:var(--amber-soft)}
+.drag-float{position:fixed;z-index:60;pointer-events:none;max-width:220px;padding:8px 12px;border-radius:12px;font:700 13px/1.3 var(--body);color:#0F172A;box-shadow:var(--shadow);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* day view: time grid */
+.tg{position:relative;margin-top:4px}
+.tg-h{position:absolute;left:0;right:0;height:72px;border-top:2px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.tg-h .hh{font:800 13px/1 var(--body);color:var(--muted);padding:8px 0 0 2px;font-variant-numeric:tabular-nums}
+.tg-h.cur .hh{color:var(--ink)}
+.tg-h .addslot{margin-top:13px;pointer-events:auto}
+.tg-lane{position:absolute;left:54px;right:52px;top:0;bottom:0}
+.tg.can .tg-lane{cursor:copy}
+.tg-ev{position:absolute;box-sizing:border-box;display:flex;gap:6px;align-items:flex-start;text-align:left;border:2px solid rgba(15,23,42,.22);border-radius:12px;padding:5px 8px;overflow:hidden;font:700 13px/1.25 var(--body);color:#0F172A;cursor:pointer;z-index:1}
+.tg-ev.nolen{border-bottom-style:dashed}
+.tg-ev .who{font:700 11px/1 var(--display);background:rgba(15,23,42,.14);border-radius:6px;padding:3px 4px;flex:none;letter-spacing:.02em}
+.tg-ev .ev{display:flex;flex-direction:column;min-width:0;overflow-wrap:anywhere}
+.tg-ev small{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:normal}   /* a narrow block breaks "17:30–19:00" after the dash, not mid-number */
+/* blocks that share the width with others get narrow: drop the initials (the colour says who) and tighten up */
+.tg-ev{container-type:inline-size}
+@container (max-width:130px){.tg-ev .who{display:none}.tg-ev .grab{min-width:20px;margin-right:-8px}.tg-ev .ev b{overflow-wrap:break-word}}
+.tg-ev b{font-weight:700}
+.tg-ev.done b{text-decoration:line-through;font-weight:600}
+.tg-ev.short{align-items:center;padding-top:0;padding-bottom:0}
+.tg-ev.short .ev{flex-direction:row;gap:6px;white-space:nowrap;overflow:hidden}
+.tg-ev.short .ev b{overflow:hidden;text-overflow:ellipsis}
+.tg-ev .rz{position:absolute;left:0;right:0;bottom:0;height:12px;cursor:ns-resize;touch-action:none}
+.tg-ev .rz::after{content:"";position:absolute;left:50%;bottom:2px;width:28px;height:4px;margin-left:-14px;border-radius:2px;background:rgba(15,23,42,.5)}
+@media (pointer:coarse){.tg-ev .rz{height:18px}}
+.tg-ghost{position:absolute;left:0;right:0;box-sizing:border-box;border:3px dashed var(--primary);border-radius:12px;background:var(--amber-soft);color:var(--ink);font:800 13px/1.2 var(--body);padding:5px 8px;pointer-events:none;z-index:3;opacity:.92}
+.tg-now{position:absolute;left:-8px;right:0;height:0;border-top:3px solid var(--warn);pointer-events:none;z-index:2}
+.tg-now::before{content:"";position:absolute;left:-4px;top:-7px;width:11px;height:11px;border-radius:50%;background:var(--warn)}
+.tg-form{position:absolute;left:54px;right:4px;z-index:5;background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:8px 10px;box-shadow:var(--shadow)}
 .hr.drop{outline:3px dashed var(--primary);outline-offset:1px;background:var(--amber-soft)}
 .hr.anytime{border:2px dashed var(--line);background:transparent}
 
@@ -516,7 +547,7 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
         </div>
         <div class="chips" id="calLegend" role="group" aria-label="Show or hide people"></div>
         <div class="cal-grid" id="calGrid"></div>
-        <p class="muted">Everyone's plans in one place, from a month back to two months ahead. In the Day view, press + on an hour to add an appointment; it goes into your plan for that day as well. To move one of your own tasks, drag it to another hour or press it and type a time. Pressing someone else's task opens their plan.</p>
+        <p class="muted">Everyone's plans in one place, from a month back to two months ahead. In the Day view a task with a time is a block as tall as its length. Press + or an empty spot to add an appointment; it goes into your plan for that day too. Your own blocks: drag one to another time, drag its bottom edge to change the length, or press it and type both. In the Week view, drag one of your tasks onto another day to move it. On a phone, drag by the six dots. Pressing someone else's task opens their plan.</p>
       </section>
 
       <div class="cols" id="planView">
@@ -768,7 +799,7 @@ let calView="day";           // "day" (hour by hour) or "week"
 let calDay=0;                // day shown in the day view, 0 = today
 let calAdd=null;             // hour whose "add" form is open in the day view
 let calEdit=null;            // id of my task whose time is being changed in the day view
-let dragId="";               // id of my task being dragged in the day view
+let calDrag=false,justDragged=false;   // a calendar entry is being dragged; one was just dropped
 let addDateFor="";           // the day the add form's date box was last set to
 const openMore=new Set();    // ids of tasks whose extra actions are showing
 const calHide=new Set();     // uids hidden in the circle calendar
@@ -1496,6 +1527,7 @@ function renderCalLegend(ids){
     onclick:()=>{if(calHide.has(uid))calHide.delete(uid);else calHide.add(uid);renderCalendar();}},avatar(uid,32),nm(uid))));
 }
 function renderCalendar(){
+  if(calDrag)return;   // a rebuild would pull the entry out from under the pointer; the drop re-renders
   const day=calView==="day";
   $("calViewDay").setAttribute("aria-pressed",day?"true":"false");$("calViewWeek").setAttribute("aria-pressed",day?"false":"true");
   $("calPrev").setAttribute("aria-label",day?"Previous day":"Previous week");$("calNext").setAttribute("aria-label",day?"Next day":"Next week");
@@ -1505,8 +1537,49 @@ function renderCalendar(){
   if(document.activeElement!==$("calDate"))$("calDate").value=day?shift(today,calDay):shift(today,-weekdayIdx+calOff*7);
   if(day)renderCalDay();else renderCalWeek();
 }
-/* Day view: one row per hour. Timed tasks sit in the hour they start; a task with a length also shows as
-   "until 15:30" in the hours it runs through, so everyone can see when a person is taken. */
+/* Dragging in the calendar is done with pointer events, so it works with a mouse, a pen and a finger alike.
+   With a mouse the whole entry can be grabbed. With a finger only its handle (six dots) or its bottom edge
+   can, so swiping over an entry still scrolls the page. spec = {begin(), move(x,y), end(), cancel()}. */
+const CAL_H=72,CAL_MIN=34;             // day grid: pixels per hour, and the smallest height of a block
+const snap15=m=>Math.round(m/15)*15;
+const hmOf=m=>pad(Math.floor(m/60)%24)+":"+pad(m%60);
+function calDragStart(ev,el,spec){
+  if(ev.button)return;
+  if(ev.pointerType!=="mouse"&&!ev.target.closest(".grab,.rz"))return;
+  const x0=ev.clientX,y0=ev.clientY;let live=false;
+  const move=e=>{
+    if(!live){
+      if(Math.abs(e.clientX-x0)+Math.abs(e.clientY-y0)<6)return;   // a press that doesn't travel is a click
+      live=true;calDrag=true;el.classList.add("dragging");document.body.classList.add("dragging-cal");if(spec.begin)spec.begin();
+    }
+    e.preventDefault();
+    if(e.clientY<70)scrollBy(0,-14);else if(e.clientY>innerHeight-70)scrollBy(0,14);
+    spec.move(e.clientX,e.clientY);
+  };
+  const stop=e=>{
+    removeEventListener("pointermove",move);removeEventListener("pointerup",stop);removeEventListener("pointercancel",stop);
+    if(!live)return;
+    calDrag=false;el.classList.remove("dragging");document.body.classList.remove("dragging-cal");
+    justDragged=true;setTimeout(()=>{justDragged=false;},0);       // the click that follows a drag is not a press
+    if(e.type==="pointerup")spec.end();else{if(spec.cancel)spec.cancel();renderCalendar();}
+  };
+  addEventListener("pointermove",move,{passive:false});addEventListener("pointerup",stop);addEventListener("pointercancel",stop);
+}
+// Entries that overlap in time sit side by side: each gets a column, and a share of the width.
+function calColumns(evs){
+  let group=[],groupEnd=-1;
+  const close=()=>{const n=Math.max(...group.map(e=>e.col))+1;group.forEach(e=>{e.cols=n;});group=[];};
+  evs.forEach(e=>{
+    if(group.length&&e.start>=groupEnd){close();groupEnd=-1;}
+    const used=new Set(group.filter(o=>o.end>e.start).map(o=>o.col));let c=0;while(used.has(c))c++;
+    e.col=c;group.push(e);groupEnd=Math.max(groupEnd,e.end);
+  });
+  if(group.length)close();
+}
+/* Day view: a time grid. A timed task is a block that starts at its time and is as tall as its length, so
+   the time it takes is visibly blocked for everyone. A task without a length is drawn half an hour tall
+   with a dashed bottom edge. My own blocks can be dragged to another time, dragged by the bottom edge to
+   change the length, or pressed to type both. Untimed tasks wait in the "Any time" row above the grid. */
 function renderCalDay(){
   const k=shift(today,calDay),d=keyDate(k),canAdd=calDay>=0,ids=joinOrder();
   $("calTitle").textContent=(calDay===0?"Today":calDay===1?"Tomorrow":calDay===-1?"Yesterday":d.toLocaleDateString(undefined,{weekday:"long"}))+" · "+d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
@@ -1514,91 +1587,163 @@ function renderCalDay(){
   renderCalLegend(ids);
   const timed=[],loose=[];
   ids.forEach((uid,rank)=>{if(calHide.has(uid))return;tasksOf(uid,k).forEach(t=>{
-    (t.time?timed:loose).push({uid,rank,t,start:t.time?Number(t.time.slice(0,2))*60+Number(t.time.slice(3)):0});});});
+    if(!t.time){loose.push({uid,rank,t,start:0});return;}
+    const start=Number(t.time.slice(0,2))*60+Number(t.time.slice(3));
+    timed.push({uid,rank,t,start,end:Math.min(1440,start+Math.max(t.mins,30))});});});
   timed.sort((a,b)=>a.start-b.start||a.rank-b.rank);
-  let lo=7,hi=21;
-  timed.forEach(e=>{lo=Math.min(lo,Math.floor(e.start/60));hi=Math.max(hi,Math.min(23,Math.floor((e.start+Math.max(e.t.mins,1)-1)/60)));});
+  calColumns(timed);
+  let lo=6,hi=22;
+  timed.forEach(e=>{lo=Math.min(lo,Math.floor(e.start/60));hi=Math.max(hi,Math.floor((e.end-1)/60));});
   if(calAdd!=null){lo=Math.min(lo,calAdd);hi=Math.max(hi,calAdd);}
-  const nowH=calDay===0?new Date().getHours():-1;
+  const now=new Date(),nowM=calDay===0?now.getHours()*60+now.getMinutes():-1,nowH=nowM<0?-1:Math.floor(nowM/60);
   if(nowH>=0){lo=Math.min(lo,nowH);hi=Math.max(hi,nowH);}
-  const hm=m=>pad(Math.floor(m/60)%24)+":"+pad(m%60);
-  // My own tasks can be moved: drag one onto an hour (or onto "Any time"), or press it and type a time.
+  const total=(hi-lo+1)*CAL_H,px=m=>(m-lo*60)/60*CAL_H;
   const movable=e=>canAdd&&e.uid===me.uid;
-  const chip=e=>{
-    const done=e.t.status==="done",doing=e.t.status==="doing",range=e.t.time?e.t.time+(e.t.mins?"–"+hm(e.start+e.t.mins):""):"",own=movable(e);
-    // A <button> cannot be dragged in every browser, so a movable entry is a focusable element acting as one.
-    const b=h(own?"div":"button",{class:"cal-ev"+(done?" done":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,draggable:own?"true":null,style:"background:"+colorOf(e.uid),
-      "aria-label":realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":"")+(own?". Press to change the time, or drag it to another hour.":""),
-      "aria-expanded":own?(calEdit===e.t.id?"true":"false"):null,
-      onclick:()=>{
-        if(!own){view=e.uid;sel=calDay>=0&&calDay<=AHEAD?k:today;mode="plan";render();return;}
-        calEdit=calEdit===e.t.id?null:e.t.id;calAdd=null;drafts["ce:time"]=e.t.time||"";renderCalendar();
-        const i=$("calEditTime");if(i)i.focus();
-      }},
-      h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
+  const openEdit=e=>{
+    calEdit=calEdit===e.t.id?null:e.t.id;calAdd=null;drafts["ce:time"]=e.t.time||"";drafts["ce:len"]=String(e.t.mins||0);renderCalendar();
+    const i=$("calEditTime");if(i)i.focus();
+  };
+  const openAdd=m=>{
+    calAdd=Math.floor(m/60);calEdit=null;drafts["ca:text"]="";drafts["ca:time"]=hmOf(m);drafts["ca:len"]="0";renderCalendar();
+    const i=$("calAddText");if(i)i.focus();
+  };
+  const toPlan=e=>{view=e.uid;sel=calDay>=0&&calDay<=AHEAD?k:today;mode="plan";render();};
+  const lane=h("div",{class:"tg-lane"});
+  let anyRow=null;
+  // Dragging an entry to a new start time. grabY = how far below the entry's top edge it was grabbed.
+  const dragTime=(e,grabY)=>{
+    let ghost=null,target=null;
+    return {
+      begin(){calEdit=null;ghost=h("div",{class:"tg-ghost"});lane.append(ghost);},
+      move(x,y){
+        const over=document.elementFromPoint(x,y),any=!!(over&&anyRow&&anyRow.contains(over));
+        if(anyRow)anyRow.classList.toggle("drop",any);
+        if(any){ghost.hidden=true;target="";return;}
+        const r=lane.getBoundingClientRect();
+        const m=Math.max(lo*60,Math.min((hi+1)*60-15,snap15(lo*60+(y-grabY-r.top)/CAL_H*60)));
+        target=hmOf(m);ghost.hidden=false;
+        ghost.style.top=px(m)+"px";ghost.style.height=Math.max(CAL_MIN,Math.max(e.t.mins,30)/60*CAL_H)+"px";
+        ghost.textContent=target+(e.t.mins?"–"+hmOf(m+e.t.mins):"");
+      },
+      end(){if(target==null)renderCalendar();else retime(k,e.t.id,target);}
+    };
+  };
+  // Dragging a block's bottom edge: the length follows the pointer in steps of 15 minutes.
+  const dragLen=(e,b)=>{
+    let mins=e.t.mins||30;
+    return {
+      begin(){calEdit=null;b.style.zIndex="4";},
+      move(x,y){
+        const r=lane.getBoundingClientRect();
+        mins=Math.max(15,Math.min(600,1440-e.start,snap15(lo*60+(y-r.top)/CAL_H*60-e.start)));
+        b.style.height=Math.max(CAL_MIN,mins/60*CAL_H-2)+"px";b.classList.remove("nolen");
+        const s=b.querySelector("small");if(s)s.textContent=e.t.time+"–"+hmOf(e.start+mins)+" · "+mins+" min";
+      },
+      end(){retime(k,e.t.id,e.t.time,mins);}
+    };
+  };
+  const say=(e,range,own)=>{
+    const done=e.t.status==="done",doing=e.t.status==="doing";
+    return realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":"")+(own?". Press to change the time or the length.":"");
+  };
+  const inner=(e,range,own)=>{
+    const done=e.t.status==="done",doing=e.t.status==="doing";
+    return [h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
       h("span",{class:"ev"},(range||done||doing)&&h("small",null,[range,done?"Done":doing?"In progress":""].filter(Boolean).join(" · ")),h("b",null,e.t.text)),
-      own?ic("grip",16):null);
+      own?h("span",{class:"grab","aria-hidden":"true"},ic("grip",16)):null];
+  };
+  // An untimed task: a chip in the "Any time" row. Mine can be dragged into the grid to give it a time.
+  const chip=e=>{
+    const own=movable(e);
+    // A <button> can't hold the drag handle in every browser, so a movable entry is a focusable element acting as one.
+    const b=h(own?"div":"button",{class:"cal-ev"+(e.t.status==="done"?" done":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
+      "aria-label":say(e,"",own),"aria-expanded":own?(calEdit===e.t.id?"true":"false"):null,
+      onclick:()=>{if(justDragged)return;if(own)openEdit(e);else toPlan(e);}},...inner(e,"",own));
     if(own){
       b.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();b.click();}});
-      b.addEventListener("dragstart",ev=>{dragId=e.t.id;calEdit=null;ev.dataTransfer.effectAllowed="move";try{ev.dataTransfer.setData("text/plain",e.t.text);}catch(x){}b.classList.add("dragging");});
-      b.addEventListener("dragend",()=>{dragId="";b.classList.remove("dragging");$("calGrid").querySelectorAll(".hr.drop").forEach(x=>x.classList.remove("drop"));});
+      b.addEventListener("pointerdown",ev=>calDragStart(ev,b,dragTime(e,18)));
+    }
+    return b;
+  };
+  // A timed task: a block in the grid.
+  const block=e=>{
+    const own=movable(e),range=e.t.time+(e.t.mins?"–"+hmOf(e.start+e.t.mins):""),ht=Math.max(CAL_MIN,(e.end-e.start)/60*CAL_H-2);
+    const b=h(own?"div":"button",{class:"tg-ev"+(e.t.status==="done"?" done":"")+(own?" mine":"")+(e.t.mins?"":" nolen")+(ht<52?" short":""),
+      type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,
+      style:"background:"+colorOf(e.uid)+";top:"+px(e.start)+"px;height:"+ht+"px;left:calc("+(e.col/e.cols*100)+"% + 1px);width:calc("+(100/e.cols)+"% - 3px)",
+      "aria-label":say(e,range,own),"aria-expanded":own?(calEdit===e.t.id?"true":"false"):null,
+      onclick:()=>{if(justDragged)return;if(own)openEdit(e);else toPlan(e);}},...inner(e,range,own));
+    if(own){
+      const rz=h("span",{class:"rz","aria-hidden":"true",title:"Drag to change the length",onclick:ev=>ev.stopPropagation()});
+      rz.addEventListener("pointerdown",ev=>{ev.stopPropagation();calDragStart(ev,b,dragLen(e,b));});
+      b.append(rz);
+      b.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();b.click();}});
+      b.addEventListener("pointerdown",ev=>calDragStart(ev,b,dragTime(e,ev.clientY-b.getBoundingClientRect().top)));
     }
     return b;
   };
   const editForm=e=>{
     const tim=h("input",{type:"time",id:"calEditTime","data-key":"ce:time",oninput:ev=>{drafts["ce:time"]=ev.target.value;}});
     tim.value=drafts["ce:time"]||"";
-    return h("form",{class:"cal-add",autocomplete:"off",onsubmit:ev=>{ev.preventDefault();const v=tim.value||drafts["ce:time"]||"";calEdit=null;retime(k,e.t.id,/^\d\d:\d\d$/.test(v)?v:"");}},
-      h("label",{class:"c-lbl",for:"calEditTime"},"Start time for “"+e.t.text.slice(0,40)+"”"),tim,
+    return h("form",{class:"cal-add",autocomplete:"off",onsubmit:ev=>{ev.preventDefault();const v=tim.value||drafts["ce:time"]||"";calEdit=null;retime(k,e.t.id,/^\d\d:\d\d$/.test(v)?v:"",Number(drafts["ce:len"])||0);}},
+      h("label",{class:"c-lbl",for:"calEditTime"},"Start time and length for “"+e.t.text.slice(0,40)+"”"),tim,
+      h("label",{class:"sr",for:"calEditLen"},"How long it will take"),
+      lenSelect("calEditLen",drafts["ce:len"],ev=>{drafts["ce:len"]=ev.target.value;},"ce:len"),
       h("button",{class:"btn small primary",type:"submit"},"Save"),
       e.t.time?h("button",{class:"btn small",type:"button",onclick:()=>{calEdit=null;retime(k,e.t.id,"");}},"No set time"):null,
       h("button",{class:"btn small",type:"button",onclick:()=>{calEdit=null;view=me.uid;sel=k;mode="plan";render();}},"Open in plan"),
       h("button",{class:"btn small",type:"button",onclick:()=>{calEdit=null;renderCalendar();}},"Cancel"));
   };
-  const forms=list=>list.filter(e=>movable(e)&&e.t.id===calEdit).map(editForm);
-  const dropZone=(row,time)=>{
-    if(!canAdd)return row;
-    row.addEventListener("dragover",ev=>{if(!dragId)return;ev.preventDefault();ev.dataTransfer.dropEffect="move";row.classList.add("drop");});
-    row.addEventListener("dragleave",ev=>{if(!row.contains(ev.relatedTarget))row.classList.remove("drop");});
-    row.addEventListener("drop",ev=>{ev.preventDefault();row.classList.remove("drop");const id=dragId;dragId="";if(id)retime(k,id,time);});
-    return row;
-  };
-  const rows=[];
-  if(loose.length||canAdd)rows.push(dropZone(h("div",{class:"hr anytime"},h("span",{class:"hh"},"Any time"),
-    h("div",{class:"slot"},...loose.map(chip),...forms(loose),loose.length?null:h("span",{class:"cal-none"},"Nothing without a time. Drag a task here to take its time off.")),h("span")),""));
-  for(let hr=lo;hr<=hi;hr++){
-    const starts=timed.filter(e=>Math.floor(e.start/60)===hr);
-    const running=timed.filter(e=>e.t.mins&&Math.floor(e.start/60)<hr&&e.start+e.t.mins>hr*60);
-    const adding=canAdd&&calAdd===hr;let form=null;
-    if(adding){
-      const txt=h("input",{type:"text",id:"calAddText","data-key":"ca:text",maxlength:"120",placeholder:"Dentist, team call, gym…",oninput:e=>{drafts["ca:text"]=e.target.value;}});
-      const tim=h("input",{type:"time",id:"calAddTime","data-key":"ca:time",required:true,oninput:e=>{drafts["ca:time"]=e.target.value;}});
-      txt.value=drafts["ca:text"]||"";tim.value=drafts["ca:time"]||pad(hr)+":00";
-      form=h("form",{class:"cal-add",autocomplete:"off",onsubmit:e=>{e.preventDefault();addFromCalendar(k);}},
-        h("label",{class:"sr",for:"calAddText"},"What is it"),txt,
-        h("label",{class:"sr",for:"calAddTime"},"Start time"),tim,
-        h("label",{class:"sr",for:"calAddLen"},"How long it will take"),
-        lenSelect("calAddLen",drafts["ca:len"],e=>{drafts["ca:len"]=e.target.value;},"ca:len"),
-        h("button",{class:"btn small primary",type:"submit"},"Add"),
-        h("button",{class:"btn small",type:"button",onclick:()=>{calAdd=null;renderCalendar();}},"Cancel"));
-    }
-    rows.push(dropZone(h("div",{class:"hr"+(hr===nowH?" now":"")},
-      h("span",{class:"hh"},pad(hr)+":00",hr===nowH?h("small",null,"now"):null),
-      h("div",{class:"slot"},...starts.map(chip),
-        ...running.map(e=>h("span",{class:"cal-cont",style:"border-color:"+colorOf(e.uid)},initials(e.uid)+" · "+e.t.text+" · until "+hm(e.start+e.t.mins))),...forms(starts),form),
-      canAdd&&!adding?h("button",{class:"iconbtn addslot",type:"button","aria-label":"Add something at "+pad(hr)+":00",
-        onclick:()=>{calAdd=hr;calEdit=null;drafts["ca:text"]="";drafts["ca:time"]=pad(hr)+":00";drafts["ca:len"]="0";renderCalendar();const i=$("calAddText");if(i)i.focus();}},ic("plus",18)):h("span")),pad(hr)+":00"));
+  // A form that belongs to a time in the grid floats over it at that time (from the bottom edge if it is late in the day).
+  const floatForm=(m,form)=>h("div",{class:"tg-form",style:px(m)>total-200?"bottom:4px":"top:"+Math.max(0,px(m))+"px"},form);
+  let over=null;
+  const editing=timed.find(e=>movable(e)&&e.t.id===calEdit);
+  if(editing)over=floatForm(editing.end,editForm(editing));
+  else if(canAdd&&calAdd!=null){
+    const txt=h("input",{type:"text",id:"calAddText","data-key":"ca:text",maxlength:"120",placeholder:"Dentist, team call, gym…",oninput:e=>{drafts["ca:text"]=e.target.value;}});
+    const tim=h("input",{type:"time",id:"calAddTime","data-key":"ca:time",required:true,oninput:e=>{drafts["ca:time"]=e.target.value;}});
+    txt.value=drafts["ca:text"]||"";tim.value=drafts["ca:time"]||pad(calAdd)+":00";
+    over=floatForm(calAdd*60,h("form",{class:"cal-add",autocomplete:"off",onsubmit:e=>{e.preventDefault();addFromCalendar(k);}},
+      h("label",{class:"sr",for:"calAddText"},"What is it"),txt,
+      h("label",{class:"sr",for:"calAddTime"},"Start time"),tim,
+      h("label",{class:"sr",for:"calAddLen"},"How long it will take"),
+      lenSelect("calAddLen",drafts["ca:len"],e=>{drafts["ca:len"]=e.target.value;},"ca:len"),
+      h("button",{class:"btn small primary",type:"submit"},"Add"),
+      h("button",{class:"btn small",type:"button",onclick:()=>{calAdd=null;renderCalendar();}},"Cancel")));
   }
-  // Keep the caret where it was if the grid is rebuilt while someone is typing in the add form.
+  const rows=[];
+  if(loose.length||canAdd){
+    anyRow=h("div",{class:"hr anytime"},h("span",{class:"hh"},"Any time"),
+      h("div",{class:"slot"},...loose.map(chip),...loose.filter(e=>movable(e)&&e.t.id===calEdit).map(editForm),
+        loose.length?null:h("span",{class:"cal-none"},"Nothing without a time. Drag a task here to take its time off.")),h("span"));
+    rows.push(anyRow);
+  }
+  const hours=[];
+  for(let hr=lo;hr<=hi;hr++)hours.push(h("div",{class:"tg-h"+(hr===nowH?" cur":""),style:"top:"+((hr-lo)*CAL_H)+"px"},
+    h("span",{class:"hh"},pad(hr)+":00"),
+    canAdd?h("button",{class:"iconbtn addslot",type:"button","aria-label":"Add something at "+pad(hr)+":00",onclick:()=>openAdd(hr*60)},ic("plus",18)):null));
+  lane.append(...timed.map(block));
+  if(nowM>=0)lane.append(h("div",{class:"tg-now",id:"calNowLine","data-lo":String(lo),style:"top:"+px(nowM)+"px"}));
+  // Pressing an empty spot in the grid starts a new entry at that time (to the half hour).
+  if(canAdd)lane.addEventListener("click",ev=>{
+    if(ev.target!==lane||justDragged)return;
+    const r=lane.getBoundingClientRect();openAdd(Math.max(0,Math.min(1410,Math.floor((lo*60+(ev.clientY-r.top)/CAL_H*60)/30)*30)));
+  });
+  rows.push(h("div",{class:"tg"+(canAdd?" can":""),style:"height:"+total+"px"},...hours,lane,over));
+  // Keep the caret where it was if the grid is rebuilt while someone is typing in a form.
   const grid=$("calGrid"),act=document.activeElement,fkey=act&&grid.contains(act)&&act.dataset?act.dataset.key:"",caret=fkey?act.selectionStart:0;
   grid.replaceChildren(...rows);
   if(fkey){const el=grid.querySelector('[data-key="'+fkey+'"]');if(el){el.focus();try{el.setSelectionRange(caret,caret);}catch(e){}}}
 }
-function retime(day,id,time){
+// Change when one of my tasks starts and, if `mins` is given, how long it takes.
+function retime(day,id,time,mins){
   const d=myDay(day),t=d.tasks.find(x=>x.id===id);
-  if(!t||t.time===time){renderCalendar();return;}
-  t.time=time;placeTimed(d,t);saveDay(day);
-  toast("“"+t.text.slice(0,40)+"” "+(time?"is now at "+time+".":"has no set time now."));
+  if(!t){renderCalendar();return;}
+  const m=mins==null?t.mins:Math.min(600,Math.max(0,Math.round(Number(mins))||0)),moved=t.time!==time,sized=t.mins!==m;
+  if(!moved&&!sized){renderCalendar();return;}
+  t.time=time;t.mins=m;if(moved)placeTimed(d,t);saveDay(day);
+  const name="“"+t.text.slice(0,40)+"” ";
+  toast(!time?name+"has no set time now.":moved?name+"is now at "+time+(sized&&m?" for "+m+" min.":"."):name+(m?"now takes "+m+" min.":"has no set length now."));
 }
 function addFromCalendar(k){
   const text=String(drafts["ca:text"]||"").replace(/\s+/g," ").trim().slice(0,120),time=String(drafts["ca:time"]||""),len=Math.min(600,Math.max(0,Number(drafts["ca:len"])||0));
@@ -1612,6 +1757,25 @@ function addFromCalendar(k){
   calAdd=null;delete drafts["ca:text"];delete drafts["ca:time"];delete drafts["ca:len"];
   saveDay(k);toast("Added to your plan for "+dayWords(k)+".");
 }
+// Week view: dragging one of my tasks onto another day (today or later) moves it there; its time and length stay.
+function dragDay(e,k){
+  let tag=null,target="";
+  const clear=()=>$("calGrid").querySelectorAll(".cal-day.drop").forEach(c=>c.classList.remove("drop"));
+  return {
+    begin(){tag=h("div",{class:"drag-float",style:"background:"+colorOf(e.uid)},e.t.text);document.body.append(tag);},
+    move(x,y){
+      tag.style.left=(x+14)+"px";tag.style.top=(y+14)+"px";
+      const over=document.elementFromPoint(x,y),col=over&&over.closest(".cal-day[data-day]");
+      clear();target=col?col.dataset.day:"";if(col&&target!==k)col.classList.add("drop");
+    },
+    cancel(){if(tag)tag.remove();},
+    end(){
+      if(tag)tag.remove();clear();
+      if(target&&target!==k){const before=tasksOf(me.uid,target).length;moveTasks(k,target,[e.t.id]);if(tasksOf(me.uid,target).length>before)toast("Moved to "+dayWords(target)+".");}
+      renderCalendar();
+    }
+  };
+}
 function renderCalWeek(){
   const start=shift(today,-weekdayIdx+calOff*7),first=shift(today,-BACK),last=shift(today,AHEAD);
   const fmt=k=>keyDate(k).toLocaleDateString(undefined,{day:"numeric",month:"short"});
@@ -1624,18 +1788,25 @@ function renderCalWeek(){
     const k=shift(start,i),d=keyDate(k),inRange=k>=first&&k<=last,evs=[];
     if(inRange)ids.forEach((uid,rank)=>{if(!calHide.has(uid))tasksOf(uid,k).forEach(t=>evs.push({uid,rank,t}));});
     evs.sort((a,b)=>(a.t.time||"99").localeCompare(b.t.time||"99")||a.rank-b.rank);
-    cols.push(h("div",{class:"cal-day"+(k===today?" today":"")+(inRange?"":" off")},
+    cols.push(h("div",{class:"cal-day"+(k===today?" today":"")+(inRange?"":" off"),"data-day":k>=today&&k<=last?k:null},
       h("h3",null,inRange?h("button",{class:"linkbtn",type:"button","aria-label":"Open "+dayName(k,true)+" hour by hour",onclick:()=>openDay(k,"calendar")},d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate())
         :d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate(),k===today?h("span",null,"Today"):null),
       ...evs.map(e=>{
-        const done=e.t.status==="done",doing=e.t.status==="doing";
-        return h("button",{class:"cal-ev"+(done?" done":""),type:"button",style:"background:"+colorOf(e.uid),
-          "aria-label":realName(e.uid)+": "+e.t.text+(e.t.time?" at "+e.t.time:"")+(done?", done":doing?", in progress":""),
-          onclick:()=>{view=e.uid;sel=k>=today&&k<=last?k:today;mode="plan";render();}},
+        const done=e.t.status==="done",doing=e.t.status==="doing",own=e.uid===me.uid&&k>=today&&!done;   // mine, and still open: can move to another day
+        const range=e.t.time?e.t.time+(e.t.mins?"–"+hmOf(Number(e.t.time.slice(0,2))*60+Number(e.t.time.slice(3))+e.t.mins):""):"";
+        const b=h(own?"div":"button",{class:"cal-ev"+(done?" done":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
+          "aria-label":realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":"")+(own?". Press to open it in your plan. Drag it to another day to move it.":""),
+          onclick:()=>{if(justDragged)return;view=e.uid;sel=k>=today&&k<=last?k:today;mode="plan";render();}},
           h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
           h("span",{class:"ev"},
-            (e.t.time||done||doing)&&h("small",null,[e.t.time,done?"Done":doing?"In progress":""].filter(Boolean).join(" · ")),
-            h("b",null,e.t.text)));
+            (range||done||doing)&&h("small",null,[range,done?"Done":doing?"In progress":""].filter(Boolean).join(" · ")),
+            h("b",null,e.t.text)),
+          own?h("span",{class:"grab","aria-hidden":"true"},ic("grip",16)):null);
+        if(own){
+          b.addEventListener("keydown",ev=>{if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();b.click();}});
+          b.addEventListener("pointerdown",ev=>calDragStart(ev,b,dragDay(e,k)));
+        }
+        return b;
       }),
       evs.length?null:h("p",{class:"cal-none"},inRange?"Nothing planned":"Not available")));
   }
@@ -1760,7 +1931,7 @@ async function sendNudge(kind){
 }
 
 /* ---------- circle lifecycle ---------- */
-function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};edit=null;mode="plan";calOff=0;calDay=0;calAdd=null;calEdit=null;dragId="";addDateFor="";openMore.clear();calView="day";calHide.clear();openThreads.clear();pomoEls=null;$("streakBadge").hidden=true;$("meBtn").hidden=true;}
+function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};edit=null;mode="plan";calOff=0;calDay=0;calAdd=null;calEdit=null;calDrag=false;addDateFor="";openMore.clear();calView="day";calHide.clear();openThreads.clear();pomoEls=null;$("streakBadge").hidden=true;$("meBtn").hidden=true;}
 function goHome(msg){stopAll();
   // Forget the saved circle only if it is the one that just failed; another tab may be using a different one.
   if(store.get("pact.gid","")===gid)store.set("pact.gid","");
@@ -1987,7 +2158,8 @@ function wire(){
     if(!$("now").contains(document.activeElement))renderNow();
   },30000);
   setInterval(tickFocus,1000);
-  setInterval(checkTimed,5000);   // timed tasks are checked often so the start chime is on time
+  setInterval(checkTimed,5000);
+  setInterval(()=>{const l=$("calNowLine");if(!l||calDrag)return;const n=new Date();l.style.top=((n.getHours()*60+n.getMinutes()-Number(l.dataset.lo)*60)/60*CAL_H)+"px";},60000);   // timed tasks are checked often so the start chime is on time
 }
 async function signIn(fn){
   const m=$("signinMsg");m.textContent="";

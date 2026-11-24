@@ -63,16 +63,24 @@ exactly what you see, look for the closest match.
   write on it (up to 140 characters) and the task's owner gets an alert.
   Comments are kept for as long as the task's day is in view, about four weeks.
 - **Circle calendar.** Everyone's tasks, coloured by person, in two views.
-  The Day view lists the day hour by hour: press + on an hour to add an
-  appointment, and it is added to your plan for that day too. A task with a
-  length also shows in the hours it runs through, so others can see when you
-  are taken. The Week view shows seven days side by side. Tap a name to hide
-  or show that person, and tap a task to open that person's plan.
+  The Day view is a time grid: a task with a time is a block that starts at
+  its time and is as tall as its length, so everyone can see when a person is
+  taken. Tasks at the same time sit side by side. A task without a length is
+  drawn half an hour tall with a dashed bottom edge. Press + or an empty spot
+  to add an appointment; it is added to your plan for that day too. The Week
+  view shows seven days side by side. Tap a name to hide or show that person,
+  and tap someone else's task to open their plan.
 - **Scheduling.** The add form has optional date, time and length boxes;
-  leave the time empty for a task you can do any time. In the calendar's Day
-  view you can drag one of your own tasks onto an hour to schedule it, or
-  onto "Any time" to take its time off. Pressing the task and typing a time
-  does the same without dragging.
+  leave the time empty for a task you can do any time. In the calendar you
+  can move your own tasks:
+  - Day view: drag a block to another time (it snaps to 15 minutes), drag
+    its bottom edge to change the length, drag an untimed task from "Any
+    time" into the grid to give it a time, or drag a block onto "Any time" to
+    take its time off. Pressing a block lets you type the time and length.
+  - Week view: drag a task onto another day (today or later) to move it
+    there. Its time and length stay.
+  - With a mouse you can grab a task anywhere. On a phone, drag it by the six
+    dots (or the bottom edge), so swiping over a task still scrolls the page.
 - **Order of the plan.** The plan and the calendar show the same tasks, so a
   change in one appears in the other. In the plan, timed tasks come first in
   time order and untimed ones follow. To reorder, drag a task's handle (the
