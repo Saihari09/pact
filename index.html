@@ -300,6 +300,14 @@ form.cal-add input[type=time],form.cal-add select{flex:0 0 auto;width:auto;min-h
 .legend-btn[aria-pressed="false"]{border-style:dashed;color:var(--muted);text-decoration:line-through}
 .btn.cheer{background:var(--accent);color:var(--on-accent);border-color:transparent}
 .banner.cheer{background:var(--accent-soft);color:var(--on-accent-soft)}
+.banner.missed{background:var(--warn-soft);color:var(--ink);border:3px solid var(--warn)}
+.banner.missed .btn{background:var(--ink-btn);color:var(--on-ink-btn)}
+.banner .quiet{font-size:14px;font-weight:700}
+/* missed tasks: red in the plan, a red frame in the calendar (the fill stays the person's colour) */
+.task.missed{border-color:var(--warn);background:var(--warn-soft)}
+.pill.missed{background:var(--warn);color:var(--card)}
+.cal-ev.missed,.tg-ev.missed{border:3px solid #B91C1C}
+.cal-ev.missed small,.tg-ev.missed small{color:#7F1D1D}
 .banner.cheer .btn{background:var(--accent);color:var(--on-accent);box-shadow:0 4px 0 var(--edge)}
 
 /* add form */
@@ -811,6 +819,8 @@ let ready=false,unsubs=[];
 const q={};
 let selfPrompt=false,lastPrompt=Date.now(),lastNudgeSeen=Date.now(),freshBanner=false,audio=null,toastTimer=0;
 let planDrag=null;   // the plan task being dragged to a new place: {id,status}
+let startKind="start";   // what the prompt for startPrompt says: "start" (its time has come) or "missed"
+let muted=false,shownMissed=0;   // a sound was wanted but the browser blocked it; missed tasks in the list as drawn
 let startPrompt="",startSnooze=null,swReg=null;   // task id whose start time has come; a snoozed one; the service worker (for notifications)
 const NUDGE_REPLIES={on:"On it",stuck:"Stuck, could use help",brk:"On a break"};
 const CHEER_REPLIES={thanks:"Thanks!",needed:"Needed that",back:"Right back at you"};
@@ -914,6 +924,16 @@ function ordered(tasks){
   let i=0;return tasks.map(t=>t.time?timed[i++]:t);
 }
 const RANK={doing:0,todo:1,done:2};
+// A task is "missed" when its day has passed and it isn't done, or when it had a start time today,
+// that time passed MISS minutes ago, and it still hasn't been started.
+const MISS=15;
+const minsOf=time=>Number(time.slice(0,2))*60+Number(time.slice(3));
+function isMissed(t,day){
+  if(day<today)return t.status!=="done";
+  if(day>today||t.status!=="todo"||!t.time)return false;
+  const n=new Date();return n.getHours()*60+n.getMinutes()>=minsOf(t.time)+MISS;
+}
+const missedToday=uid=>tasksOf(uid,today).filter(t=>isMissed(t,today)).sort((a,b)=>a.time.localeCompare(b.time));
 const shown=tasks=>ordered(tasks).map((t,i)=>[t,i]).sort((a,b)=>RANK[a[0].status]-RANK[b[0].status]||a[1]-b[1]).map(x=>x[0]);
 // Where a task that just got a time goes: before the next later timed task, else after the last earlier one,
 // else on top. So unless you move things yourself, timed tasks lead the plan in time order.
@@ -1149,7 +1169,7 @@ function renderProfile(){
 }
 function renderNow(){
   const box=$("now"),tasks=tasksOf(view,today),day=days[view+"_"+today],who=realName(view);
-  const doing=tasks.find(t=>t.status==="doing"),next=shown(tasks).find(t=>t.status==="todo"),dn=doneOf(view,today);   // next = top of the to-do list
+  const doing=tasks.find(t=>t.status==="doing"),late=ready?missedToday(view)[0]:null,next=late||shown(tasks).find(t=>t.status==="todo"),dn=doneOf(view,today);   // next = a missed task first, else the top of the to-do list
   const txt=[],btns=[];let pomo=null;
   const f=ready&&doing?focusOf(view):null,timing=f&&f.id===doing.id&&(f.end===0||f.end>Date.now()||mine());
   pomoEls=null;
@@ -1178,8 +1198,8 @@ function renderNow(){
         timing&&h("button",{class:"btn tbtn",type:"button",onclick:endFocus},brk?"Skip break":"Stop timer"));
     }
   }else if(next){
-    txt.push(h("span",{class:"label"},mine()?"Pick one thing":who+" hasn't started this yet"),h("span",{class:"what"},next.text));
-    if(next.time||next.mins)txt.push(h("span",{class:"meta"},[next.time&&"Set for "+next.time,next.mins&&next.mins+" min"].filter(Boolean).join(" · ")));
+    txt.push(h("span",{class:"label"},late?(mine()?"Missed · do this first":who+" missed this"):mine()?"Pick one thing":who+" hasn't started this yet"),h("span",{class:"what"},next.text));
+    if(next.time||next.mins)txt.push(h("span",{class:"meta"},[next.time&&(late?"Was set for ":"Set for ")+next.time,next.mins&&next.mins+" min"].filter(Boolean).join(" · ")));
     if(mine())btns.push(h("button",{class:"btn",type:"button",onclick:()=>setStatus(next.id,"doing")},ic("play",20),"Start this now"));
     else txt.push(h("span",{class:"meta"},"Nothing is marked as in progress. A nudge might help."));
   }else if(tasks.length){
@@ -1227,12 +1247,12 @@ function renderList(){
   const sorted=shown(tasks);
   const groupSize={};sorted.forEach(t=>{groupSize[t.status]=(groupSize[t.status]||0)+1;});
   const items=sorted.map(t=>{
-    const done=t.status==="done";
+    const done=t.status==="done",missed=isMissed(t,sel);
     const check=own&&isToday
       ?h("button",{class:"check",type:"button","aria-label":(done?"Mark not done: ":"Mark done: ")+t.text,"aria-pressed":done?"true":"false",onclick:()=>setStatus(t.id,done?"todo":"done")},ic("check",24))
       :h("span",{class:"check","aria-hidden":"true"},ic("check",24));
     const meta=h("div",{class:"meta"},
-      h("span",{class:"pill "+t.status},t.status==="doing"?"In progress":done?"Done"+(t.doneAt?" "+hhmm(t.doneAt):""):isToday?"To do":"Planned"),
+      h("span",{class:"pill "+(missed?"missed":t.status)},missed?"Missed":t.status==="doing"?"In progress":done?"Done"+(t.doneAt?" "+hhmm(t.doneAt):""):isToday?"To do":"Planned"),
       t.time&&h("span",{class:"tag"},ic("clock",15),t.time),
       t.mins?h("span",{class:"tag"},t.mins+" min"):null,
       t.pomos?h("span",{class:"tag"},ic("timer",15),t.pomos+(t.pomos===1?" focus block":" focus blocks")):null);
@@ -1286,7 +1306,7 @@ function renderList(){
           h("label",{class:"sr",for:"cmt-"+t.id},"Comment on "+t.text),inp,
           h("button",{class:"btn small primary",type:"submit"},"Send")));
     }
-    const li=h("li",{class:"task "+t.status},check,h("div",{class:"body"},h("span",{class:"text"},t.text),meta,acts,extra),thread);
+    const li=h("li",{class:"task "+t.status+(missed?" missed":"")},check,h("div",{class:"body"},h("span",{class:"text"},t.text),meta,acts,extra),thread);
     if(grip){
       grip.addEventListener("dragstart",ev=>{planDrag={id:t.id,status:t.status};ev.dataTransfer.effectAllowed="move";
         try{ev.dataTransfer.setData("text/plain",t.text);ev.dataTransfer.setDragImage(li,24,24);}catch(x){}
@@ -1323,7 +1343,8 @@ function renderList(){
   const total=tasks.length,doneN=tasks.filter(t=>t.status==="done").length;
   const fill={done:0,doing:1,todo:2};
   $("meter").replaceChildren(...(total?sorted.slice().sort((a,b)=>fill[a.status]-fill[b.status]):[{status:"todo"}]).map(t=>h("i",{class:t.status})));
-  $("meterText").textContent=!total?"":isToday?doneN+" of "+total+" done":total+" planned";
+  const missedN=tasks.filter(t=>isMissed(t,sel)).length;shownMissed=missedN;
+  $("meterText").textContent=!total?"":(isToday||sel<today?doneN+" of "+total+" done":total+" planned")+(missedN?" · "+missedN+" missed":"");
 }
 function renderCarry(){
   const box=$("carry"),left=tasksOf(me.uid,yesterday).filter(t=>t.status!=="done");
@@ -1452,6 +1473,10 @@ function renderBanner(){
   const doing=tasksOf(me.uid,today).find(t=>t.status==="doing");
   const due=startPrompt?tasksOf(me.uid,today).find(t=>t.id===startPrompt&&t.status==="todo"):null;
   if(!due)startPrompt="";
+  const lateList=missedToday(me.uid);
+  // Said in the banner when a sound was due but the browser would not play it.
+  const quiet=()=>muted&&audio?h("span",{class:"quiet"},"No sound: the browser blocks it until you click or tap this page once."):null;
+  b.classList.remove("missed");
   document.title=pending.length?"("+pending.length+") "+(pending[0].kind==="cheer"?"Cheer!":"Nudge!")+" · Pact":"Pact · Pair & Act";
   if(pending.length){
     // A nudge asks "how is it going?", a cheer just needs a thank-you, so each kind has its own replies.
@@ -1472,19 +1497,29 @@ function renderBanner(){
     // A timed task has reached its start time: one tap starts it, or push it back five minutes.
     b.classList.remove("cheer");
     const close=()=>{startPrompt="";lastPrompt=Date.now();renderBanner();};
-    put(b,h("strong",null,ic("clock",24),h("span",null,"Time to start: "+due.text+" ("+due.time+")")),
+    const late=startKind==="missed";b.classList.toggle("missed",late);
+    // "missed" = it should have started a while ago: start it first, or give it a new day.
+    put(b,h("strong",null,ic(late?"bell":"clock",24),h("span",null,late?"Missed: "+due.text+" (was set for "+due.time+"). Do it first?":"Time to start: "+due.text+" ("+due.time+")")),
+      quiet(),
       h("div",{class:"row"},
         h("button",{class:"btn",type:"button",onclick:()=>setStatus(due.id,"doing")},"Start now"),
-        h("button",{class:"btn",type:"button",onclick:()=>{startSnooze={id:due.id,at:Date.now()+5*60000};close();toast("I'll ask again in 5 minutes.");}},"In 5 minutes"),
+        late?h("button",{class:"btn",type:"button",onclick:()=>{const id=due.id;startPrompt="";moveTasks(today,shift(today,1),[id]);toast("Moved to tomorrow.");}},"Move to tomorrow")
+          :h("button",{class:"btn",type:"button",onclick:()=>{startSnooze={id:due.id,at:Date.now()+5*60000};close();toast("I'll ask again in 5 minutes.");}},"In 5 minutes"),
         h("button",{class:"btn",type:"button",onclick:close},"Not now")));
     b.hidden=false;
   }else if(selfPrompt){
     b.classList.remove("cheer");
     const close=()=>{selfPrompt=false;lastPrompt=Date.now();renderBanner();};
-    b.replaceChildren(h("strong",null,ic("clock",24),h("span",null,toneOf(me.uid).self(doing?doing.text:""))),
+    // With nothing in progress and something missed, the check points at the missed task instead of asking in general.
+    const first=!doing&&lateList[0];b.classList.toggle("missed",!!first);
+    put(b,h("strong",null,ic(first?"bell":"clock",24),h("span",null,first
+        ?(lateList.length===1?"1 missed task":lateList.length+" missed tasks")+". Start with: "+first.text+" (was set for "+first.time+")"
+        :toneOf(me.uid).self(doing?doing.text:""))),
+      quiet(),
       h("div",{class:"row"},
-        h("button",{class:"btn",type:"button",onclick:()=>{close();saveDay(today);}},doing?"Yes, still on it":"Picking one now"),
-        h("button",{class:"btn",type:"button",onclick:close},"Taking a break")));
+        first?h("button",{class:"btn",type:"button",onclick:()=>setStatus(first.id,"doing")},"Start it now")
+          :h("button",{class:"btn",type:"button",onclick:()=>{close();saveDay(today);}},doing?"Yes, still on it":"Picking one now"),
+        h("button",{class:"btn",type:"button",onclick:close},first?"Not now":"Taking a break")));
     b.hidden=false;
   }else b.hidden=true;
   b.classList.toggle("fresh",freshBanner&&!b.hidden);freshBanner=false;
@@ -1644,19 +1679,19 @@ function renderCalDay(){
   };
   const say=(e,range,own)=>{
     const done=e.t.status==="done",doing=e.t.status==="doing";
-    return realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":"")+(own?". Press to change the time or the length.":"");
+    return realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":isMissed(e.t,k)?", missed":"")+(own?". Press to change the time or the length.":"");
   };
   const inner=(e,range,own)=>{
     const done=e.t.status==="done",doing=e.t.status==="doing";
     return [h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
-      h("span",{class:"ev"},(range||done||doing)&&h("small",null,[range,done?"Done":doing?"In progress":""].filter(Boolean).join(" · ")),h("b",null,e.t.text)),
+      h("span",{class:"ev"},(range||done||doing||isMissed(e.t,k))&&h("small",null,[range,done?"Done":doing?"In progress":isMissed(e.t,k)?"Missed":""].filter(Boolean).join(" · ")),h("b",null,e.t.text)),
       own?h("span",{class:"grab","aria-hidden":"true"},ic("grip",16)):null];
   };
   // An untimed task: a chip in the "Any time" row. Mine can be dragged into the grid to give it a time.
   const chip=e=>{
     const own=movable(e);
     // A <button> can't hold the drag handle in every browser, so a movable entry is a focusable element acting as one.
-    const b=h(own?"div":"button",{class:"cal-ev"+(e.t.status==="done"?" done":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
+    const b=h(own?"div":"button",{class:"cal-ev"+(e.t.status==="done"?" done":"")+(isMissed(e.t,k)?" missed":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
       "aria-label":say(e,"",own),"aria-expanded":own?(calEdit===e.t.id?"true":"false"):null,
       onclick:()=>{if(justDragged)return;if(own)openEdit(e);else toPlan(e);}},...inner(e,"",own));
     if(own){
@@ -1668,7 +1703,7 @@ function renderCalDay(){
   // A timed task: a block in the grid.
   const block=e=>{
     const own=movable(e),range=e.t.time+(e.t.mins?"–"+hmOf(e.start+e.t.mins):""),ht=Math.max(CAL_MIN,(e.end-e.start)/60*CAL_H-2);
-    const b=h(own?"div":"button",{class:"tg-ev"+(e.t.status==="done"?" done":"")+(own?" mine":"")+(e.t.mins?"":" nolen")+(ht<52?" short":""),
+    const b=h(own?"div":"button",{class:"tg-ev"+(e.t.status==="done"?" done":"")+(isMissed(e.t,k)?" missed":"")+(own?" mine":"")+(e.t.mins?"":" nolen")+(ht<52?" short":""),
       type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,
       style:"background:"+colorOf(e.uid)+";top:"+px(e.start)+"px;height:"+ht+"px;left:calc("+(e.col/e.cols*100)+"% + 1px);width:calc("+(100/e.cols)+"% - 3px)",
       "aria-label":say(e,range,own),"aria-expanded":own?(calEdit===e.t.id?"true":"false"):null,
@@ -1792,14 +1827,14 @@ function renderCalWeek(){
       h("h3",null,inRange?h("button",{class:"linkbtn",type:"button","aria-label":"Open "+dayName(k,true)+" hour by hour",onclick:()=>openDay(k,"calendar")},d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate())
         :d.toLocaleDateString(undefined,{weekday:"short"})+" "+d.getDate(),k===today?h("span",null,"Today"):null),
       ...evs.map(e=>{
-        const done=e.t.status==="done",doing=e.t.status==="doing",own=e.uid===me.uid&&k>=today&&!done;   // mine, and still open: can move to another day
+        const done=e.t.status==="done",doing=e.t.status==="doing",missed=isMissed(e.t,k),own=e.uid===me.uid&&k>=today&&!done;   // mine, and still open: can move to another day
         const range=e.t.time?e.t.time+(e.t.mins?"–"+hmOf(Number(e.t.time.slice(0,2))*60+Number(e.t.time.slice(3))+e.t.mins):""):"";
-        const b=h(own?"div":"button",{class:"cal-ev"+(done?" done":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
-          "aria-label":realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":"")+(own?". Press to open it in your plan. Drag it to another day to move it.":""),
+        const b=h(own?"div":"button",{class:"cal-ev"+(done?" done":"")+(missed?" missed":"")+(own?" mine":""),type:own?null:"button",role:own?"button":null,tabindex:own?"0":null,style:"background:"+colorOf(e.uid),
+          "aria-label":realName(e.uid)+": "+e.t.text+(range?" at "+range:"")+(done?", done":doing?", in progress":missed?", missed":"")+(own?". Press to open it in your plan. Drag it to another day to move it.":""),
           onclick:()=>{if(justDragged)return;view=e.uid;sel=k>=today&&k<=last?k:today;mode="plan";render();}},
           h("span",{class:"who","aria-hidden":"true"},initials(e.uid)),
           h("span",{class:"ev"},
-            (range||done||doing)&&h("small",null,[range,done?"Done":doing?"In progress":""].filter(Boolean).join(" · ")),
+            (range||done||doing||missed)&&h("small",null,[range,done?"Done":doing?"In progress":missed?"Missed":""].filter(Boolean).join(" · ")),
             h("b",null,e.t.text)),
           own?h("span",{class:"grab","aria-hidden":"true"},ic("grip",16)):null);
         if(own){
@@ -1862,15 +1897,18 @@ async function copyText(text,statusEl,okMsg){
 // Sounds are short sine notes, each [frequency, starts after (s), lasts (s), volume], faded in and out so they don't click.
 function play(notes){
   if(!audio)return;
-  try{
-    if(audio.state==="suspended")audio.resume().catch(()=>{});
-    notes.forEach(([f,at,dur,vol])=>{
-      const o=audio.createOscillator(),g=audio.createGain(),t0=audio.currentTime+at;
-      o.type="sine";o.frequency.value=f;
-      g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
-      o.connect(g);g.connect(audio.destination);o.start(t0);o.stop(t0+dur+.05);
-    });
-  }catch(e){}
+  const go=()=>{try{notes.forEach(([f,at,dur,vol])=>{
+    const o=audio.createOscillator(),g=audio.createGain(),t0=audio.currentTime+at;
+    o.type="sine";o.frequency.value=f;
+    g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    o.connect(g);g.connect(audio.destination);o.start(t0);o.stop(t0+dur+.05);
+  });}catch(e){}};
+  if(audio.state==="running"){go();return;}
+  // The browser is holding the sound back (nobody has clicked on the page yet, or it was put to sleep in the
+  // background). Ask it to wake up; if it hasn't within a moment, say so on screen instead of playing late.
+  let settled=false;
+  try{audio.resume().then(()=>{if(!settled){settled=true;go();}}).catch(()=>{});}catch(e){}
+  setTimeout(()=>{if(settled)return;settled=true;muted=true;if(me&&!$("app").hidden)renderBanner();},500);
 }
 function beep(){play([[660,0,.28,.1]]);}
 function chime(){play([[523.25,0,.35,.16],[659.25,.18,.35,.16],[783.99,.36,.75,.18]]);}   // three rising notes: time to start
@@ -1881,15 +1919,19 @@ function popup(title,body,tag,force){
   try{
     if(!("Notification" in window)||Notification.permission!=="granted")return;
     if(!force&&!document.hidden&&document.hasFocus())return;
-    const o={body:body||"",tag:tag||"pact",renotify:true,icon:"icon-192.png"};
+    const o={body:body||"",tag:tag||"pact",renotify:true,silent:false,icon:"icon-192.png"};
     if(swReg&&swReg.showNotification)swReg.showNotification(title,o).catch(()=>{});
     else new Notification(title,o);
   }catch(e){}
 }
 /* ---------- timed tasks: heads-up before, chime and prompt at the start ---------- */
 function fireStart(t){
-  startPrompt=t.id;freshBanner=true;chime();
+  startPrompt=t.id;startKind="start";freshBanner=true;chime();
   popup("Time to start",t.text+" ("+t.time+")","pact-start");renderBanner();
+}
+function fireMissed(t){
+  startPrompt=t.id;startKind="missed";freshBanner=true;chime();
+  popup("Missed: "+t.text,"It was set for "+t.time+". Start it now, or move it.","pact-missed");render();
 }
 function checkTimed(){
   if(!ready||!me)return;
@@ -1897,21 +1939,25 @@ function checkTimed(){
     const t=tasksOf(me.uid,today).find(x=>x.id===startSnooze.id);startSnooze=null;
     if(t&&t.status==="todo")fireStart(t);
   }
-  const lead=store.get("pact.lead","10");if(lead==="")return;
-  const L=Number(lead)||0,n=new Date(),nowM=n.getHours()*60+n.getMinutes();
+  const lead=store.get("pact.lead","10"),on=lead!=="",L=Number(lead)||0,n=new Date(),nowM=n.getHours()*60+n.getMinutes();
   tasksOf(me.uid,today).forEach(t=>{
     if(!t.time||t.status!=="todo")return;
-    const start=Number(t.time.slice(0,2))*60+Number(t.time.slice(3)),key=today+"|"+t.id+"|"+t.time;
-    if(L&&nowM>=start-L&&nowM<start&&!reminded.has(key+"|lead")){
+    const start=minsOf(t.time),key=today+"|"+t.id+"|"+t.time;
+    if(on&&L&&nowM>=start-L&&nowM<start&&!reminded.has(key+"|lead")){
       reminded.add(key+"|lead");beep();
       const msg="In "+(start-nowM)+" min: "+t.text+" ("+t.time+")";
       toast(msg,9000);popup("Coming up",msg,"pact-lead");
     }
     // A background tab is only woken about once a minute, so the start gets a two-minute window.
-    if(nowM>=start&&nowM<=start+2&&!reminded.has(key+"|start")){
+    if(on&&nowM>=start&&nowM<=start+2&&!reminded.has(key+"|start")){
       reminded.add(key+"|start");reminded.add(key+"|lead");fireStart(t);
     }
+    // Still not started MISS minutes on: say so once, as it happens. (A task that was already missed when
+    // the page opened is only shown as missed; a row of alerts on opening the page would help nobody.)
+    if(on&&nowM>=start+MISS&&nowM<=start+MISS+2&&!reminded.has(key+"|miss")){reminded.add(key+"|miss");fireMissed(t);}
   });
+  // Redraw when a task has tipped over into "missed" (or back) since the list was drawn.
+  if(mode==="plan"&&!planDrag&&!edit&&tasksOf(view,sel).filter(t=>isMissed(t,sel)).length!==shownMissed)render();
 }
 async function sendNudge(kind){
   const status=$("buddyStatus"),input=$("nudgeMsg"),msg=input.value.trim().slice(0,140),to=view;
@@ -2117,9 +2163,15 @@ function wire(){
   // The sound choice is remembered. A browser only lets a page make sound after you have clicked or typed
   // on it, so a remembered "on" starts silent and wakes up with the first tap or key press.
   const sb=$("soundBtn"),showSound=()=>{sb.textContent=audio?"Turn off":"Turn on";sb.setAttribute("aria-pressed",audio?"true":"false");};
-  const wake=()=>{if(audio&&audio.state==="suspended")audio.resume().catch(()=>{});};
-  document.addEventListener("pointerdown",wake);document.addEventListener("keydown",wake);
-  if(store.get("pact.sound","")==="1"){soundOn();showSound();}
+  // Sounds are on unless switched off. Every click, tap and key press wakes the sound up again: Safari and
+  // phones only accept that from inside a finished tap (click / touchend), not from the press that starts it.
+  const wake=()=>{
+    if(muted){muted=false;if(me&&!$("app").hidden)renderBanner();}
+    if(audio&&audio.state!=="running")try{audio.resume().catch(()=>{});}catch(e){}
+  };
+  ["click","touchend","pointerup","keydown"].forEach(ev=>document.addEventListener(ev,wake,true));
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&audio&&audio.state!=="running")try{audio.resume().catch(()=>{});}catch(e){}});
+  if(store.get("pact.sound","1")!=="0"){soundOn();showSound();}
   sb.addEventListener("click",()=>{
     if(audio){try{audio.close();}catch(e){}audio=null;store.set("pact.sound","0");showSound();return;}
     if(soundOn()){store.set("pact.sound","1");chime();showSound();}
@@ -2152,7 +2204,11 @@ function wire(){
     // No "still on it?" while a focus timer is running; the timer is the check.
     if(mins&&!selfPrompt&&!focusOf(me.uid)&&Date.now()-lastPrompt>=mins*60000&&tasksOf(me.uid,today).some(t=>t.status!=="done")){
       const on=tasksOf(me.uid,today).find(t=>t.status==="doing");
-      selfPrompt=true;freshBanner=true;beep();popup(toneOf(me.uid).self(on?on.text:""),"Quick check from Pact");renderBanner();
+      const late=on?[]:missedToday(me.uid);
+      selfPrompt=true;freshBanner=true;beep();
+      if(late.length)popup((late.length===1?"1 missed task":late.length+" missed tasks")+" in Pact","Start with: "+late[0].text+" (was set for "+late[0].time+")","pact-missed");
+      else popup(toneOf(me.uid).self(on?on.text:""),"Quick check from Pact");
+      renderBanner();
     }
     // Refresh "12 min in", unless the keyboard is on a button inside the card (rebuilding would drop it).
     if(!$("now").contains(document.activeElement))renderNow();

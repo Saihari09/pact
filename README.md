@@ -99,11 +99,20 @@ exactly what you see, look for the closest match.
   on it?" (any number of minutes), and how long before a timed task you get a
   heads-up. When a timed task's start time comes, a "Time to start" prompt
   appears with Start now, In 5 minutes and Not now.
-- **Sounds and notifications.** Switch each on once under Your profile, per
-  device. Sounds: a three-note chime when a timed task starts, a short beep
-  for heads-ups, nudges and comments. The choice is remembered, but a browser
-  only lets a page make sound after you have tapped or typed on it since it
-  loaded. Notifications appear on the device when Pact is not the window you
+- **Missed tasks.** A timed task that still isn't started 15 minutes after
+  its start time is marked Missed: red in the plan, a red frame in the
+  calendar, and counted next to the day's progress ("2 of 6 done · 1
+  missed"). Tasks left undone on a past day are marked the same way. When a
+  task tips over into missed while Pact is open, you get a chime, a
+  notification and a prompt with Start now, Move to tomorrow and Not now.
+  The top card puts the earliest missed task first, and the "still on it?"
+  check names it when nothing is in progress. Buddies see the same marks.
+- **Sounds and notifications.** Sounds are on unless you switch them off;
+  notifications you switch on once under Your profile, per device. Sounds: a three-note chime when a timed task starts, a short beep
+  for heads-ups, nudges and comments. A browser only lets a page make sound after you have clicked, tapped
+  or typed on it since it loaded; when a sound is held back for that reason,
+  the prompt says so. The sound that comes with the notification itself is
+  the device's own and is set in its notification settings for your browser. Notifications appear on the device when Pact is not the window you
   are looking at. "Test it now" shows all three. On an iPhone or iPad,
   notifications need Pact added to the Home Screen first (Share → Add to Home
   Screen); that copy starts signed out, so sign in with Google there and
