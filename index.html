@@ -371,6 +371,21 @@ body.dragging-cal,body.dragging-cal *{cursor:grabbing!important;-webkit-user-sel
 .hr.anytime{border:2px dashed var(--line);background:transparent}
 
 /* feed */
+/* games hub */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:14px 0}
+.game-item{display:flex;flex-direction:column;gap:2px;min-width:0}
+.game{display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 12px;border:2px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);text-decoration:none;box-shadow:var(--clay);transition:transform var(--fast) ease-out,border-color var(--base) ease}
+@media (hover:hover){.game:hover{border-color:var(--primary)}}
+.game:active{transform:scale(.98)}
+.game .tile{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font:700 19px/1 var(--display);color:#0F172A;flex:none}
+.game .gt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.game .gt b{font:700 16px/1.2 var(--body);overflow-wrap:anywhere}
+.game .gt small{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.game .ic{flex:none;color:var(--muted)}
+.game-item .by{font-size:13px;color:var(--muted);padding:0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.game-add{margin:6px 0 10px}
+.game-add summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center}
+.game-add form{margin-top:8px;max-width:460px}
 /* circle chat */
 .chat{display:flex;flex-direction:column;gap:10px;max-height:340px;overflow-y:auto;padding:4px 2px;margin-bottom:10px;overscroll-behavior:contain}
 .chat .cmt.me{flex-direction:row-reverse}
@@ -564,7 +579,26 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
       <div class="tabs" role="group" aria-label="Choose a view">
         <button class="tab" id="tabPlan" type="button" aria-pressed="true" data-ic="check">Plan</button>
         <button class="tab" id="tabCal" type="button" aria-pressed="false" data-ic="calendar">Circle calendar</button>
+        <button class="tab" id="tabGames" type="button" aria-pressed="false" data-ic="play">Games</button>
       </div>
+
+      <section class="panel" id="games" aria-label="Games hub" hidden>
+        <h2 class="hd2"><span class="hic" data-ic="play"></span><span>Games hub</span></h2>
+        <p class="muted">The games this circle plays together. Each one opens in a new tab.</p>
+        <div class="game-grid" id="gameGrid"></div>
+        <details class="game-add" id="gameAddBox">
+          <summary>Add a game</summary>
+          <form class="stack" id="gameForm" autocomplete="off">
+            <div class="field"><label for="gameUrl">Link to the game</label>
+            <input type="text" id="gameUrl" inputmode="url" autocapitalize="off" spellcheck="false" maxlength="300" placeholder="https://…" required></div>
+            <div class="field"><label for="gameName">Name (optional)</label>
+            <input type="text" id="gameName" maxlength="30" placeholder="Connections"></div>
+            <div class="row"><button class="btn small primary" type="submit">Add to the hub</button></div>
+            <p class="muted" id="gameStatus" aria-live="polite"></p>
+          </form>
+        </details>
+        <p class="hint">A game you add is shown to everyone in this circle with your name on it. You can remove the ones you added.</p>
+      </section>
 
       <section class="panel" id="calendar" aria-label="Circle calendar" hidden>
         <div class="cal-head">
@@ -859,7 +893,7 @@ let nudges=[];               // today's nudges and cheers, newest first
 let comments={};             // "ownerUid|taskId" -> comments on that task, oldest first
 let view="";                 // uid whose plan is on screen
 let sel=today;               // day shown in the plan
-let mode="plan";             // "plan" or "calendar"
+let mode="plan";             // "plan", "calendar" or "games"
 let calOff=0;                // week shown in the circle calendar, 0 = this week
 let calView="day";           // "day" (hour by hour) or "week"
 let calDay=0;                // day shown in the day view, 0 = today
@@ -922,8 +956,18 @@ function cleanMember(d){
     goal:String(x.goal||"").replace(/\s+/g," ").trim().slice(0,80),
     areas:Array.isArray(x.areas)?AREAS.filter(a=>x.areas.includes(a)).slice(0,4):[],
     style:STYLES[x.style]?x.style:"",
+    games:Array.isArray(x.games)?x.games.filter(g=>g&&typeof g==="object").map(g=>({name:String(g.name||"").replace(/\s+/g," ").trim().slice(0,30),url:safeUrl(g.url)})).filter(g=>g.url).slice(0,20):[],
     joinedAt:Number(x.joinedAt)||0};
 }
+/* Games hub: a built-in list of games, plus the links members add (kept on each member's own profile). */
+const GAMES=[["Foximax","https://foximax.com/"],["Quordle","https://www.merriam-webster.com/games/quordle/#/classic"],
+  ["Wordle","https://www.nytimes.com/games/wordle/index.html"],["Hardword","https://hardword.co/"],
+  ["One Word Search","https://puzzlist.com/onewordsearch/"],["Angledle","https://angledle.com/"],
+  ["Waffle","https://wafflegame.net/daily"],["Stackdown","https://puzzlist.com/stackdown/"],
+  ["Puzzmo","https://www.puzzmo.com/"],["Poople","https://poople.io/"]];
+// Only ordinary https links are kept; anything else (javascript:, data:, http:) is dropped.
+function safeUrl(u){try{const x=new URL(String(u||"").trim());return x.protocol==="https:"&&x.href.length<=300?x.href:"";}catch(e){return "";}}
+const hostOf=u=>{try{return new URL(u).hostname.replace(/^www\./,"");}catch(e){return "";}};
 // One colour per person, handed out in the order people joined, so the first eight never share one.
 const joinOrder=()=>Object.keys(members).sort((a,b)=>(members[a].joinedAt-members[b].joinedAt)||a.localeCompare(b));
 function colorOf(uid){
@@ -1974,12 +2018,37 @@ function renderCalWeek(){
   }
   $("calGrid").replaceChildren(...cols);
 }
+function renderGames(){
+  const seen=new Set(),items=[];
+  const add=(name,url,by)=>{if(seen.has(url))return;seen.add(url);items.push({name:name||hostOf(url),url,by});};
+  GAMES.forEach(g=>add(g[0],g[1],""));
+  joinOrder().forEach(u=>(members[u].games||[]).forEach(g=>add(g.name,g.url,u)));
+  put($("gameGrid"),...items.map((g,i)=>h("div",{class:"game-item"},
+    h("a",{class:"game",href:g.url,target:"_blank",rel:"noopener noreferrer","aria-label":"Play "+g.name+" (opens "+hostOf(g.url)+" in a new tab)"},
+      h("span",{class:"tile","aria-hidden":"true",style:"background:"+AVATAR_COLORS[i%AVATAR_COLORS.length]},g.name.slice(0,1).toUpperCase()),
+      h("span",{class:"gt"},h("b",null,g.name),h("small",null,hostOf(g.url))),ic("arrow",18)),
+    g.by?h("span",{class:"by"},"Added by "+nm(g.by).replace(/^You$/,"you"),
+      g.by===me.uid?h("button",{class:"linkbtn",type:"button","aria-label":"Remove "+g.name+" from the hub",onclick:()=>saveGames(members[me.uid].games.filter(x=>x.url!==g.url),"Removed from the hub.")},"Remove"):null):null)));
+}
+async function saveGames(list,done){
+  try{await updateDoc(ref("members",me.uid),{games:list});toast(done);return true;}
+  catch(e){note("Couldn't save that. Check your connection and try again.");return false;}
+}
+async function addGame(){
+  const st=$("gameStatus"),raw=$("gameUrl").value.trim(),url=safeUrl(/^[a-z][a-z0-9+.-]*:/i.test(raw)?raw:"https://"+raw),name=$("gameName").value.replace(/\s+/g," ").trim().slice(0,30);
+  if(!url||!hostOf(url).includes(".")){st.textContent="That doesn't look like a web link. It should start with https://";return;}
+  const mineNow=(members[me.uid]&&members[me.uid].games)||[];
+  if(GAMES.some(g=>g[1]===url)||joinOrder().some(u=>(members[u].games||[]).some(g=>g.url===url))){st.textContent="That game is already in the hub.";return;}
+  if(mineNow.length>=20){st.textContent="You can add up to 20 games. Remove one first.";return;}
+  st.textContent="";
+  if(await saveGames(mineNow.concat({name:name||hostOf(url),url:url}),"Added to the hub.")){$("gameUrl").value="";$("gameName").value="";$("gameAddBox").open=false;}
+}
 function renderChrome(){
   $("dateLine").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
   $("title").textContent=(group&&group.name)||"Pact";
-  const cal=mode==="calendar";
-  $("planView").hidden=cal;$("calendar").hidden=!cal;
-  $("tabPlan").setAttribute("aria-pressed",cal?"false":"true");$("tabCal").setAttribute("aria-pressed",cal?"true":"false");
+  const cal=mode==="calendar",gm=mode==="games";
+  $("planView").hidden=mode!=="plan";$("calendar").hidden=!cal;$("games").hidden=!gm;
+  $("tabPlan").setAttribute("aria-pressed",mode==="plan"?"true":"false");$("tabCal").setAttribute("aria-pressed",cal?"true":"false");$("tabGames").setAttribute("aria-pressed",gm?"true":"false");
   const own=mine();
   $("addWrap").hidden=!(ready&&own);
   $("settings").hidden=!(ready&&own);
@@ -2006,6 +2075,7 @@ function render(){
   if(!members[view])view=me.uid;
   renderChrome();renderPeople();renderBanner();renderProfile();renderNow();renderCarry();renderDays();renderList();renderChat();renderFeed();renderStats();renderInsights();renderRoster();
   if(mode==="calendar")renderCalendar();
+  if(mode==="games")renderGames();
 }
 
 /* ---------- text copies ---------- */
@@ -2189,6 +2259,7 @@ async function sendStuck(){
   }catch(e){st.textContent="That didn't send. Check your connection and try again.";}
 }
 function openChat(who){
+  if(mode!=="plan"){mode="plan";render();}   // the chat lives beside the plan
   if(typeof who==="string"&&(who==="all"||dmPeople().includes(who))&&who!==chatWith)setChatWith(who);
   $("chatPanel").scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
   $("chatInput").focus({preventScroll:true});markChatRead();
@@ -2373,6 +2444,8 @@ function wire(){
   });
   $("tabPlan").addEventListener("click",()=>{mode="plan";render();});
   $("tabCal").addEventListener("click",()=>{mode="calendar";render();});
+  $("tabGames").addEventListener("click",()=>{mode="games";render();});
+  $("gameForm").addEventListener("submit",e=>{e.preventDefault();addGame();});
   const calStep=n=>()=>{
     calAdd=null;
     if(calView==="day")calDay=n?Math.min(AHEAD,Math.max(-BACK,calDay+n)):0;

@@ -56,6 +56,11 @@ exactly what you see, look for the closest match.
 - **Nudges and cheers.** Pick a person at the top, then Send a nudge or Send a
   cheer. It appears on their screen with one-tap replies: a nudge asks how it
   is going (On it, Stuck, On a break), a cheer can be thanked.
+- **Games hub.** The Games tab lists the games the circle plays, one button
+  each; a button opens the game in a new tab. The built-in list is the
+  `GAMES` array near the top of the script in `index.html`. Anyone in the
+  circle can add a game under "Add a game" (https links only); it is saved on
+  their profile, shown to the circle with their name, and they can remove it.
 - **Circle chat.** A small chat for the whole circle, in the side column
   (the Chat button at the top jumps to it and shows how many messages are
   new). Messages are up to 140 characters, are kept for about four weeks,
