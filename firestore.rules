@@ -59,6 +59,28 @@ service cloud.firestore {
         allow delete: if isMember(gid)
           && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
       }
+
+      // Private messages between two people in the circle. Only those two can read one; only its
+      // sender can change or delete it.
+      match /dms/{mid} {
+        allow read: if isMember(gid)
+          && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+        allow create: if isMember(gid)
+          && request.resource.data.from == request.auth.uid
+          && request.resource.data.to is string
+          && request.resource.data.to != request.auth.uid
+          && exists(/databases/$(database)/documents/groups/$(gid)/members/$(request.resource.data.to))
+          && request.resource.data.msg is string
+          && request.resource.data.msg.size() > 0
+          && request.resource.data.msg.size() <= 500;
+        allow update: if isMember(gid)
+          && resource.data.from == request.auth.uid
+          && request.resource.data.msg is string
+          && request.resource.data.msg.size() > 0
+          && request.resource.data.msg.size() <= 500
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['msg', 'editedAt']);
+        allow delete: if isMember(gid) && resource.data.from == request.auth.uid;
+      }
     }
   }
 }

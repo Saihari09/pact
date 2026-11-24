@@ -61,6 +61,16 @@ exactly what you see, look for the closest match.
   new). Messages are up to 140 characters, are kept for about four weeks,
   and you can delete your own. A new message beeps and, with notifications
   on, shows on the device.
+- **Private messages.** The row of people above the chat switches between
+  Everyone and a private conversation with one buddy ("Message privately" on
+  a buddy's plan opens it too). Only the two of you can read those messages:
+  the database rules refuse everyone else, including other members of the
+  circle. They run up to 500 characters and are kept for about four weeks.
+  This needs the `dms` section of `firestore.rules` to be published (setup
+  step 3); without it the people row simply doesn't appear.
+- **Editing messages.** Your own chat messages, private or to the circle,
+  have a pencil next to the bin. It puts the text back in the message box;
+  Send saves the change and the message is marked "edited".
 - **Stuck? Ask for a call.** Under the chat, "I'm stuck · ask for a call"
   sends a call-out to the circle with an optional note and an optional
   Google Meet link. Everyone else gets a chime, a notification and a prompt

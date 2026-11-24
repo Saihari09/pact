@@ -378,6 +378,13 @@ body.dragging-cal,body.dragging-cal *{cursor:grabbing!important;-webkit-user-sel
 .chat .cmt.call .bubble{background:var(--card);border:2px solid var(--primary);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .chat .day{align-self:center;font:800 12px/1 var(--body);color:var(--muted);padding:2px 0}
 .chat p{margin:0}
+.chat .edited{font-weight:600;color:var(--muted);font-size:12px}
+.chat .tools{display:flex;flex-direction:column}
+#chatWho{margin-bottom:10px}
+#chatWho .chip{display:inline-flex;align-items:center;gap:6px;border-style:solid}
+#chatWho .chip[aria-pressed=true]{background:var(--ink-btn);color:var(--on-ink-btn);border-color:transparent}
+#chatWho .chip b{background:var(--warn);color:var(--card);border-radius:999px;padding:2px 7px;font-size:12px;margin-left:6px}
+.editing{font-size:14px;font-weight:700;margin:0 0 6px}
 #chatPanel .cform{margin-bottom:10px}
 .stuckform{margin-top:10px;background:var(--bg2);border-radius:14px;padding:12px}
 a.btn{text-decoration:none}
@@ -693,6 +700,7 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
             <div class="row">
               <button class="btn primary" id="nudgeBtn" type="button" data-ic="bell">Send a nudge</button>
               <button class="btn cheer" id="cheerBtn" type="button" data-ic="heart">Send a cheer</button>
+              <button class="btn" id="dmBtn" type="button" data-ic="chat" hidden>Message privately</button>
             </div>
             <p class="muted" id="buddyStatus" aria-live="polite"></p>
             <p class="muted"><a id="buddyCal" target="_blank" rel="noopener" href="#">Add a daily "check on my buddies" reminder to my calendar</a></p>
@@ -700,7 +708,9 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
 
           <section class="panel" id="chatPanel">
             <h2 class="hd2"><span class="hic" data-ic="chat"></span><span>Circle chat</span></h2>
-            <div class="chat" id="chatLog" role="log" aria-label="Circle chat messages" tabindex="0"></div>
+            <div class="chips" id="chatWho" role="group" aria-label="Who to talk to" hidden></div>
+            <div class="chat" id="chatLog" role="log" aria-label="Chat messages" tabindex="0"></div>
+            <p class="editing" id="chatEditing" hidden><span>Editing your message.</span> <button class="linkbtn" id="chatEditCancel" type="button">Cancel</button></p>
             <form class="cform" id="chatForm" autocomplete="off">
               <label class="sr" for="chatInput">Message to the circle</label>
               <input type="text" id="chatInput" maxlength="140" placeholder="Say something to the circle">
@@ -719,7 +729,7 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
               </div>
               <p class="muted" id="stuckStatus" aria-live="polite"></p>
             </form>
-            <p class="hint">Everyone in the circle sees this. Messages are up to 140 characters and are kept for about four weeks.</p>
+            <p class="hint" id="chatHint">Everyone in the circle sees this. Messages are up to 140 characters and are kept for about four weeks.</p>
           </section>
 
           <section class="panel">
@@ -759,7 +769,7 @@ setTimeout(function(){if(!window.__pactBooted){var m=document.getElementById("bo
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import {getAuth,onAuthStateChanged,GoogleAuthProvider,signInWithPopup,signInAnonymously,signOut} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-import {getFirestore,doc,collection,getDoc,getDocs,setDoc,updateDoc,deleteDoc,addDoc,onSnapshot,query,where} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import {getFirestore,doc,collection,getDoc,getDocs,setDoc,updateDoc,deleteDoc,addDoc,onSnapshot,query,where,writeBatch} from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const $=id=>document.getElementById(id);
 function h(tag,attrs,...kids){
@@ -867,6 +877,9 @@ const drafts={};             // text typed into edit and comment boxes, kept acr
 let lastCommentSeen=Date.now();
 let chat=[],lastChatSeen=Date.now();   // circle chat, oldest first: messages and "I'm stuck" call-outs
 const callDone=new Set();             // call-outs I have answered or put aside
+// Private messages between two members live in their own collection ("dms"), which only those two can read.
+let dms=[],dmSent=[],dmGot=[],dmOff=true,lastDmSeen=Date.now();   // dmOff: the database refused, so the feature stays hidden
+let chatWith="all",chatEdit=null;     // the conversation on screen ("all" or a member's uid); the message being edited
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9][a-z0-9-]{2,60}$/i;   // the only kind of link a call-out may carry
 let ready=false,unsubs=[];
 const q={};
@@ -1540,7 +1553,7 @@ function renderBanner(){
       quiet(),
       h("div",{class:"row"},
         call.link?h("a",{class:"btn",href:call.link,target:"_blank",rel:"noopener",onclick:()=>setTimeout(close,0)},"Join on Google Meet"):null,
-        h("button",{class:"btn",type:"button",onclick:()=>{close();openChat();}},"Reply in chat"),
+        h("button",{class:"btn",type:"button",onclick:()=>{close();openChat("all");}},"Reply in chat"),
         h("button",{class:"btn",type:"button",onclick:close},"Not now")));
     b.hidden=false;
   }else if(pending.length){
@@ -1973,6 +1986,7 @@ function renderChrome(){
   $("meAvatar").replaceChildren(avatar(me.uid,36));
   $("meBtn").replaceChildren(avatar(me.uid,34));$("meBtn").hidden=!ready;
   $("buddy").hidden=!(ready&&!own);
+  $("dmBtn").hidden=dmOff||own;
   if(!own){
     const m=members[view];
     $("buddyTitle").textContent="Check up on "+realName(view);
@@ -2074,42 +2088,89 @@ function checkTimed(){
   if(mode==="plan"&&!planDrag&&!edit&&tasksOf(view,sel).filter(t=>isMissed(t,sel)).length!==shownMissed)render();
 }
 /* ---------- circle chat and "I'm stuck" call-outs ---------- */
-const chatRead=()=>Number(store.get("pact.chatRead."+gid,"0"))||0;
+// Each conversation remembers how far it has been read: "all" is the circle, anything else a member's uid.
+const readKey=who=>"pact.chatRead."+gid+(who==="all"?"":"."+who);
+const convo=who=>who==="all"?chat:dms.filter(m=>m.from===who||m.to===who);
+const unreadIn=who=>{const seen=Number(store.get(readKey(who),"0"))||0;return convo(who).filter(m=>m.from!==me.uid&&m.at>seen).length;};
+const dmPeople=()=>dmOff?[]:joinOrder().filter(u=>u!==me.uid);
 function markChatRead(){
-  const last=chat.length?chat[chat.length-1].at:0;
-  if(last>chatRead()){store.set("pact.chatRead."+gid,String(last));paintChatBadge();}
+  const list=convo(chatWith),last=list.length?list[list.length-1].at:0;
+  if(last>(Number(store.get(readKey(chatWith),"0"))||0)){store.set(readKey(chatWith),String(last));paintChatBadge();renderChatWho();}
 }
 function paintChatBadge(){
-  const seen=chatRead(),n=chat.filter(m=>m.from!==me.uid&&m.at>seen).length;
+  const n=unreadIn("all")+dmPeople().reduce((sum,u)=>sum+unreadIn(u),0);
   $("chatBtnTxt").textContent=n?"Chat · "+n+" new":"Chat";$("chatBtn").classList.toggle("unread",n>0);
 }
+function setChatWith(who){
+  chatWith=who;chatEdit=null;$("chatInput").value="";$("chatLog").replaceChildren();renderChat();
+}
+// The row of people above the chat: Everyone, then one chip per buddy for a private conversation.
+function renderChatWho(){
+  const box=$("chatWho"),people=dmPeople();
+  box.hidden=!people.length;if(!people.length)return;
+  const act=document.activeElement,held=act&&box.contains(act)?act.dataset.who:"";
+  const chip=(who,label,pic)=>{const n=who===chatWith?0:unreadIn(who);
+    return h("button",{class:"chip",type:"button","data-who":who,"aria-pressed":who===chatWith?"true":"false",
+      "aria-label":(who==="all"?"Everyone in the circle":"Private chat with "+label)+(n?", "+n+" new":""),onclick:()=>{setChatWith(who);const b=$("chatWho").querySelector('[data-who="'+who+'"]');if(b)b.focus();}},
+      pic,label,n?h("b",null,String(n)):null);};
+  put(box,chip("all","Everyone",ic("users",16)),...people.map(u=>chip(u,realName(u),avatar(u,24))));
+  if(held){const b=box.querySelector('[data-who="'+held+'"]');if(b)b.focus();}
+}
 function renderChat(){
+  if(chatWith!=="all"&&!dmPeople().includes(chatWith)){chatWith="all";chatEdit=null;}
+  const all=chatWith==="all",list=convo(chatWith);
+  if(chatEdit&&!list.some(m=>m.id===chatEdit.id))chatEdit=null;
+  renderChatWho();
   const log=$("chatLog"),stick=!log.childElementCount||log.scrollHeight-log.scrollTop-log.clientHeight<60;
   const rows=[];let lastDay="";
-  chat.forEach(m=>{
+  list.forEach(m=>{
     const dk=dayKey(new Date(m.at));
     if(dk!==lastDay){lastDay=dk;rows.push(h("div",{class:"day"},dk===today?"Today":dk===shift(today,-1)?"Yesterday":new Date(m.at).toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})));}
     const own=m.from===me.uid,call=m.kind==="call",open=call&&Date.now()-m.at<2*3600000;
     rows.push(h("div",{class:"cmt"+(own?" me":"")+(call?" call":"")},avatar(m.from,28),
-      h("div",{class:"bubble"},h("span",{class:"by"},nm(m.from)," ",h("time",null,hhmm(m.at))),
+      h("div",{class:"bubble"},h("span",{class:"by"},nm(m.from)," ",h("time",null,hhmm(m.at)),m.edited?h("span",{class:"edited"}," · edited"):null),
         call?h("p",null,h("b",null,own?"You asked for a call.":"Is stuck and asks for a quick call."),m.msg?" “"+m.msg+"”":""):h("p",null,m.msg),
         call&&m.link&&open?h("a",{class:"btn small primary",href:m.link,target:"_blank",rel:"noopener",onclick:()=>{callDone.add(m.id);setTimeout(renderBanner,0);}},"Join on Google Meet"):null,
         call&&m.link&&!open?h("p",{class:"hint"},"This call-out is more than two hours old."):null),
-      own?h("button",{class:"act icon danger",type:"button","aria-label":"Delete your message",onclick:async()=>{try{await deleteDoc(ref("nudges",m.id));}catch(e){note("Couldn't delete that message. Try again.");}}},ic("trash",16)):null));
+      own?h("div",{class:"tools"},
+        call?null:h("button",{class:"act icon",type:"button","data-medit":m.id,"aria-label":"Edit your message","aria-pressed":chatEdit&&chatEdit.id===m.id?"true":"false",
+          onclick:()=>{chatEdit={id:m.id};const i=$("chatInput");i.value=m.msg;renderChat();i.focus();}},ic("edit",16)),
+        h("button",{class:"act icon danger",type:"button","aria-label":"Delete your message",onclick:async()=>{
+          try{await deleteDoc(ref(m.dm?"dms":"nudges",m.id));}catch(e){note("Couldn't delete that message. Try again.");}}},ic("trash",16))):null));
   });
-  if(!rows.length)rows.push(h("p",{class:"muted"},"No messages yet. Say hello, or tell the circle what you're working on."));
+  if(!rows.length)rows.push(h("p",{class:"muted"},all?"No messages yet. Say hello, or tell the circle what you're working on.":"No private messages with "+realName(chatWith)+" yet."));
   log.replaceChildren(...rows);
   if(stick)log.scrollTop=log.scrollHeight;
-  // Messages count as read once the chat is on screen in a tab you are looking at.
+  const inp=$("chatInput"),max=all?140:500;
+  inp.maxLength=max;inp.placeholder=chatEdit?"Change your message":all?"Say something to the circle":"Message "+realName(chatWith)+" privately";
+  $("chatEditing").hidden=!chatEdit;
+  $("stuckBtn").hidden=!all;if(!all){$("stuckForm").hidden=true;$("stuckBtn").setAttribute("aria-expanded","false");}
+  $("chatHint").textContent=all?"Everyone in the circle sees this. Messages are up to 140 characters and are kept for about four weeks."
+    :"Only you and "+realName(chatWith)+" can see this. Messages are up to 500 characters and are kept for about four weeks.";
+  // Messages count as read once the conversation is on screen in a tab you are looking at.
   const r=log.getBoundingClientRect();
   if(!document.hidden&&r.bottom>0&&r.top<innerHeight&&!$("app").hidden)markChatRead();
   paintChatBadge();
 }
 async function sendChat(){
-  const i=$("chatInput"),msg=i.value.replace(/\s+/g," ").trim().slice(0,140);if(!msg)return;
-  i.value="";
-  try{await addDoc(col("nudges"),{day:today,from:me.uid,to:"all",kind:"chat",msg:msg,at:Date.now(),reply:""});}
-  catch(e){i.value=msg;note("That message didn't send. Check your connection and try again.");}
+  const all=chatWith==="all",i=$("chatInput"),msg=i.value.replace(/\s+/g," ").trim().slice(0,all?140:500);if(!msg)return;
+  const ed=chatEdit,old=ed?convo(chatWith).find(m=>m.id===ed.id):null;
+  i.value="";chatEdit=null;$("chatEditing").hidden=true;
+  try{
+    if(old){
+      if(old.msg===msg){renderChat();return;}
+      if(old.dm)await updateDoc(ref("dms",old.id),{msg:msg,editedAt:Date.now()});
+      else{
+        // The circle's rules don't let a sender change a message in place, so an edit swaps it for a corrected
+        // copy with the same time stamp, in one step.
+        const b=writeBatch(db);
+        b.set(doc(col("nudges")),{day:old.day,from:me.uid,to:"all",kind:"chat",msg:msg,at:old.at,edited:Date.now(),reply:""});
+        b.delete(ref("nudges",old.id));await b.commit();
+      }
+    }
+    else if(all)await addDoc(col("nudges"),{day:today,from:me.uid,to:"all",kind:"chat",msg:msg,at:Date.now(),reply:""});
+    else await addDoc(col("dms"),{from:me.uid,to:chatWith,msg:msg,at:Date.now()});
+  }catch(e){i.value=msg;if(old)chatEdit=ed;renderChat();note(old?"That change didn't save. Check your connection and try again.":"That message didn't send. Check your connection and try again.");}
 }
 // A pasted Meet address in any of its usual shapes becomes https://meet.google.com/<code>; anything else is refused.
 function meetLink(raw){
@@ -2127,7 +2188,8 @@ async function sendStuck(){
     toast(link?"Sent. Your buddies get a Join button. Open the Meet yourself from the chat.":"Sent. Your buddies will see that you're stuck.",6000);
   }catch(e){st.textContent="That didn't send. Check your connection and try again.";}
 }
-function openChat(){
+function openChat(who){
+  if(typeof who==="string"&&(who==="all"||dmPeople().includes(who))&&who!==chatWith)setChatWith(who);
   $("chatPanel").scrollIntoView({block:"start",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
   $("chatInput").focus({preventScroll:true});markChatRead();
 }
@@ -2149,7 +2211,7 @@ async function sendNudge(kind){
 }
 
 /* ---------- circle lifecycle ---------- */
-function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};chat=[];callDone.clear();edit=null;mode="plan";calOff=0;calDay=0;calAdd=null;calEdit=null;calDrag=false;calSelect=false;calClip=[];calSel.clear();addDateFor="";openMore.clear();calView="day";calHide.clear();openThreads.clear();pomoEls=null;$("streakBadge").hidden=true;$("meBtn").hidden=true;}
+function stopAll(){unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];ready=false;members={};days={};nudges=[];comments={};chat=[];dms=[];dmSent=[];dmGot=[];dmOff=true;chatWith="all";chatEdit=null;callDone.clear();edit=null;mode="plan";calOff=0;calDay=0;calAdd=null;calEdit=null;calDrag=false;calSelect=false;calClip=[];calSel.clear();addDateFor="";openMore.clear();calView="day";calHide.clear();openThreads.clear();pomoEls=null;$("streakBadge").hidden=true;$("meBtn").hidden=true;}
 function goHome(msg){stopAll();
   // Forget the saved circle only if it is the one that just failed; another tab may be using a different one.
   if(store.get("pact.gid","")===gid)store.set("pact.gid","");
@@ -2200,7 +2262,7 @@ function start(){
       const x=d.data()||{};
       if(x.kind==="chat"||x.kind==="call"){
         // The circle chat lives in the same collection: kind "chat" is a message, "call" an "I'm stuck" call-out.
-        const m={id:d.id,from:String(x.from||""),kind:x.kind,msg:String(x.msg||"").slice(0,140),at:Number(x.at)||0,link:MEET.test(String(x.link||""))?String(x.link):""};
+        const m={id:d.id,day:String(x.day||today),from:String(x.from||""),kind:x.kind,msg:String(x.msg||"").slice(0,140),at:Number(x.at)||0,edited:Number(x.edited)||0,link:MEET.test(String(x.link||""))?String(x.link):""};
         if(m.at&&(m.msg||m.kind==="call"))talk.push(m);
         return;
       }
@@ -2232,6 +2294,25 @@ function start(){
     renderChat();
     renderFeed();renderBanner();renderList();
   },fail));
+  // Private messages: two listeners, the ones I sent and the ones sent to me. If the database rules for them are
+  // not published yet, the listeners are refused and the feature simply stays out of sight.
+  const dmParse=snap=>{const out=[];snap.forEach(d=>{const x=d.data()||{};
+    const m={id:d.id,dm:true,kind:"dm",from:String(x.from||""),to:String(x.to||""),msg:String(x.msg||"").slice(0,500),at:Number(x.at)||0,edited:Number(x.editedAt)||0};
+    if(m.at&&m.msg&&m.from&&m.to)out.push(m);});return out;};
+  const dmMerge=()=>{
+    dms=dmSent.concat(dmGot).sort((a,b)=>a.at-b.at);
+    const news=dmGot.filter(m=>m.at>lastDmSeen&&members[m.from]);
+    if(news.length){const m=news[news.length-1];lastDmSeen=m.at;beep();
+      toast(realName(m.from)+" (private): "+m.msg.slice(0,80),5000);popup(realName(m.from)+" sent you a private message",m.msg,"pact-dm");}
+    renderChat();renderChrome();
+  };
+  const dmFail=()=>{dmOff=true;dms=[];dmSent=[];dmGot=[];renderChat();renderChrome();};
+  let dmSwept=false;
+  unsubs.push(onSnapshot(query(col("dms"),where("from","==",me.uid)),snap=>{
+    dmOff=false;dmSent=dmParse(snap);dmMerge();
+    if(!dmSwept){dmSwept=true;const cut=Date.now()-(BACK+1)*86400000;dmSent.filter(m=>m.at<cut).forEach(m=>deleteDoc(ref("dms",m.id)).catch(()=>{}));}
+  },dmFail));
+  unsubs.push(onSnapshot(query(col("dms"),where("to","==",me.uid)),snap=>{dmGot=dmParse(snap);dmMerge();},dmFail));
   getDocs(query(col("nudges"),where("day","<",shift(today,-BACK)))).then(async s=>{
     for(const d of s.docs){const x=d.data();if(x.to===me.uid||x.from===me.uid){try{await deleteDoc(d.ref);}catch(e){}}}
   }).catch(()=>{});
@@ -2270,7 +2351,10 @@ function wire(){
     try{await setDoc(ref("members",me.uid),{name:name,joinedAt:Date.now()});start();}
     catch(err){$("joinMsg").textContent="Couldn't join. Check your connection and try again.";}
   });
-  $("chatBtn").addEventListener("click",openChat);
+  $("chatBtn").addEventListener("click",()=>openChat());
+  $("chatEditCancel").addEventListener("click",()=>{chatEdit=null;$("chatInput").value="";renderChat();$("chatInput").focus();});
+  $("chatInput").addEventListener("keydown",e=>{if(e.key==="Escape"&&chatEdit){chatEdit=null;e.target.value="";renderChat();}});
+  $("dmBtn").addEventListener("click",()=>openChat(view));
   $("chatForm").addEventListener("submit",e=>{e.preventDefault();sendChat();});
   $("chatInput").addEventListener("focus",markChatRead);
   $("chatLog").addEventListener("scroll",()=>{const l=$("chatLog");if(l.scrollHeight-l.scrollTop-l.clientHeight<60)markChatRead();});
