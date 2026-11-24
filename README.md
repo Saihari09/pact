@@ -13,6 +13,7 @@ sign-in and stores the data. Setup takes about 15 minutes, once.
 |---|---|
 | `index.html` | The whole app |
 | `config.js` | Your Firebase settings (you paste these in step 4) |
+| `sw.js`, `manifest.webmanifest`, `icon-*.png` | Let phones show notifications and add Pact to the Home Screen |
 | `firestore.rules` | Who may read and write what (you paste this in step 3) |
 
 ## Setup
@@ -34,8 +35,8 @@ exactly what you see, look for the closest match.
    Firebase shows a `firebaseConfig` block. Copy its `apiKey`, `authDomain`,
    `projectId` and `appId` values into `config.js`.
 
-5. **Put it on GitHub Pages.** Create a repository, upload `index.html` and
-   `config.js` (the other files can come along too). Then Settings → Pages →
+5. **Put it on GitHub Pages.** Create a repository, upload every file in
+   this folder. Then Settings → Pages →
    deploy from the `main` branch, root folder. Your site appears at
    `https://<your-username>.github.io/<repo-name>/`.
 
@@ -72,6 +73,14 @@ exactly what you see, look for the closest match.
   view you can drag one of your own tasks onto an hour to schedule it, or
   onto "Any time" to take its time off. Pressing the task and typing a time
   does the same without dragging.
+- **Order of the plan.** The plan and the calendar show the same tasks, so a
+  change in one appears in the other. In the plan, timed tasks come first in
+  time order and untimed ones follow. To reorder, drag a task's handle (the
+  six dots) onto another task, press the up or down arrow key on the handle,
+  or use Move up / Move down under More. Timed tasks always keep their time
+  order among themselves; untimed tasks can go anywhere, also between or
+  above timed ones. "Pick one thing" shows the task at the top of the to-do
+  list.
 - **Dates.** Dates are links. Tap a day in the progress grid or a heading in
   the Week view to open it. "Show another day" and the add form's date box reach up to 60 days ahead.
 - **Task length and focus timer.** Pick a length when adding or editing a
@@ -79,9 +88,18 @@ exactly what you see, look for the closest match.
   3, 5 or 10 minute break), or the task's own length. Buddies see that you
   are focusing, and finished blocks are counted on the task.
 - **Reminders.** Under Your profile you can set how often the app asks "still
-  on it?" (any number of minutes), and how long before a timed task it
-  reminds you. Both work while the site is open in a tab. For a reminder when
-  it is closed, use a task's "Add to calendar" link.
+  on it?" (any number of minutes), and how long before a timed task you get a
+  heads-up. When a timed task's start time comes, a "Time to start" prompt
+  appears with Start now, In 5 minutes and Not now.
+- **Sounds and notifications.** Switch each on once under Your profile, per
+  device. Sounds: a three-note chime when a timed task starts, a short beep
+  for heads-ups, nudges and comments. The choice is remembered, but a browser
+  only lets a page make sound after you have tapped or typed on it since it
+  loaded. Notifications appear on the device when Pact is not the window you
+  are looking at. "Test it now" shows all three. On an iPhone or iPad,
+  notifications need Pact added to the Home Screen first (Share → Add to Home
+  Screen); that copy starts signed out, so sign in with Google there and
+  paste your invite link.
 - **Nudge preference.** "How buddies should nudge you" changes three things:
   the wording of nudges and self-checks you receive, the note ideas your
   buddies are offered, and, for "mostly cheers", the cheer button comes first
@@ -103,10 +121,13 @@ exactly what you see, look for the closest match.
 
 ## Limits worth knowing
 
-- Nudges arrive while the site is open in a browser tab (a background tab is
-  fine, and you can switch on pop-up notifications in settings). They do not
-  arrive when the site is closed. Real push notifications would need a paid
-  Firebase plan and extra code.
+- Nudges, reminders, sounds and notifications work while the site is open (a
+  background tab on a computer is fine). They do not arrive when the site is
+  closed, and a phone stops a page shortly after you switch away from it or
+  lock the screen. For those times, use a task's "Add to calendar" link, which
+  hands the reminder to your calendar app. Real push notifications would need
+  a server that sends them (a paid Firebase plan or a scheduled job) and extra
+  code.
 - "Use just a name" accounts live in one browser. Clearing that browser's data
   loses access to that identity. Google sign-in works across devices.
 - The values in `config.js` are not secrets. The rules in `firestore.rules` are

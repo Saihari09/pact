@@ -6,6 +6,11 @@
 <meta name="color-scheme" content="light dark">
 <title>Pact · Pair &amp; Act</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='2' y='6' width='44' height='40' rx='14' fill='%23B45309'/%3E%3Crect x='2' y='2' width='44' height='40' rx='14' fill='%23FBBF24'/%3E%3Cg fill='none' stroke-width='5.6' stroke-linecap='round'%3E%3Cpath d='M21.5 30.5L33 16.5' stroke='%23291600'/%3E%3Cpath d='M14.6 23.6l6.9 6.9' stroke='%23fff'/%3E%3C/g%3E%3Ccircle cx='36.4' cy='10.6' r='3.5' fill='%23291600'/%3E%3Ccircle cx='11.6' cy='17' r='3.5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-title" content="Pact">
+<meta name="theme-color" content="#FFFBEB" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14100A" media="(prefers-color-scheme: dark)">
 <script>try{var t=localStorage.getItem("pact.theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -215,6 +220,12 @@ input[type=text]:focus,input[type=number]:focus,input[type=time]:focus,input[typ
 #list{display:flex;flex-direction:column;gap:10px}
 .task{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:start;box-shadow:var(--clay);transition:border-color var(--base) ease,background var(--base) ease}
 .task.doing{border-color:var(--primary);background:var(--amber-soft)}
+.task{position:relative}
+.task.dragging{opacity:.45}
+.task.drop-before::before,.task.drop-after::after{content:"";position:absolute;left:10px;right:10px;height:4px;border-radius:2px;background:var(--primary);pointer-events:none}
+.task.drop-before::before{top:-9px} .task.drop-after::after{bottom:-9px}
+.act.grip{margin-left:auto;color:var(--muted);cursor:grab;-webkit-user-select:none;user-select:none}
+.act.grip:active{cursor:grabbing}
 .task.done .text{text-decoration:line-through;color:var(--muted)}
 .check{width:48px;height:48px;border-radius:50%;border:3px solid var(--control);background:transparent;cursor:pointer;display:grid;place-items:center;color:transparent;padding:0;transition:transform var(--base) var(--spring),background var(--base) ease,border-color var(--base) ease}
 .check .ic{stroke-width:3}
@@ -437,13 +448,19 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
   <section class="panel auth" id="home" hidden>
     <h1>Start a circle</h1>
     <p class="notice" id="homeMsg" hidden></p>
-    <p class="muted">A circle is you and your accountability buddies. Got an invite link from a friend? Open that link instead.</p>
+    <p class="muted">A circle is you and your accountability buddies.</p>
     <form class="stack" id="createForm" autocomplete="off">
       <div class="field"><label for="createName">Your name</label>
       <input type="text" id="createName" maxlength="30" required></div>
       <div class="field"><label for="createCircle">Circle name</label>
       <input type="text" id="createCircle" maxlength="40" placeholder="Thesis crew" required></div>
       <button class="btn primary" type="submit">Create circle</button>
+    </form>
+    <hr>
+    <form class="stack" id="pasteForm" autocomplete="off">
+      <div class="field"><label for="pasteLink">Already have an invite link? Paste it here</label>
+      <input type="text" id="pasteLink" inputmode="url" autocapitalize="off" spellcheck="false" required></div>
+      <button class="btn" type="submit">Open that circle</button>
     </form>
     <p class="muted"><button class="linkbtn" type="button" data-signout>Sign out</button></p>
   </section>
@@ -575,18 +592,19 @@ hr{border:0;border-top:2px solid var(--line);margin:2px 0;width:100%}
             <div class="settings">
               <label for="selfEvery">"Still on it?" check every (minutes, 0 = off)</label>
               <input type="number" id="selfEvery" min="0" max="240" step="1" inputmode="numeric">
-              <label for="taskLead">Reminder before a timed task (minutes, empty = off)</label>
+              <label for="taskLead">Heads-up before a timed task (minutes, empty = off)</label>
               <input type="number" id="taskLead" min="0" max="120" step="1" inputmode="numeric">
-              <span>Try the "still on it?" check</span>
+              <span>Sounds (start chime, reminders, nudges)</span>
+              <button class="btn small" id="soundBtn" type="button" aria-pressed="false">Turn on</button>
+              <span>Notifications on this device</span>
+              <button class="btn small" id="notifBtn" type="button">Turn on</button>
+              <span>Try a reminder</span>
               <button class="btn small" id="selfTest" type="button">Test it now</button>
               <label for="calPref">Calendar links open in</label>
               <select id="calPref"><option value="google">Google Calendar</option><option value="outlook">Outlook</option></select>
-              <span>Sound when a nudge arrives</span>
-              <button class="btn small" id="soundBtn" type="button" aria-pressed="false">Turn on</button>
-              <span>Pop-up notification when a nudge arrives</span>
-              <button class="btn small" id="notifBtn" type="button">Turn on</button>
             </div>
-            <p class="muted">Nudges reach you while this site is open in a tab, even in the background. They can't reach you when it's closed.</p>
+            <p class="muted" id="notifHint" hidden></p>
+            <p class="muted">Sounds and notifications work while Pact is open, even in a background tab or behind other windows. They can't reach you once it's closed; for those times, use a task's "Add to calendar" link.</p>
             <div class="row">
               <button class="btn small" id="copyDay" type="button">Copy this day as text</button>
               <button class="btn small" id="copyWeek" type="button">Copy the week ahead</button>
@@ -761,6 +779,8 @@ let lastCommentSeen=Date.now();
 let ready=false,unsubs=[];
 const q={};
 let selfPrompt=false,lastPrompt=Date.now(),lastNudgeSeen=Date.now(),freshBanner=false,audio=null,toastTimer=0;
+let planDrag=null;   // the plan task being dragged to a new place: {id,status}
+let startPrompt="",startSnooze=null,swReg=null;   // task id whose start time has come; a snoozed one; the service worker (for notifications)
 const NUDGE_REPLIES={on:"On it",stuck:"Stuck, could use help",brk:"On a break"};
 const CHEER_REPLIES={thanks:"Thanks!",needed:"Needed that",back:"Right back at you"};
 const REPLIES={...NUDGE_REPLIES,...CHEER_REPLIES};
@@ -855,6 +875,24 @@ function cleanDay(raw,id){
 const busy=k=>!!(q[k]&&(q[k].saving||q[k].dirty));
 const myDay=day=>{const k=me.uid+"_"+day;return days[k]||(days[k]=cleanDay({},k));};
 const tasksOf=(uid,day)=>{const d=days[uid+"_"+day];return d?d.tasks:[];};
+// The order of a plan is the owner's own order, with one rule: timed tasks always stay in time order among
+// themselves. ordered() enforces that by re-sorting the timed tasks into the places timed tasks already hold;
+// untimed tasks never move. shown() is what the list displays: in progress, then to do, then done.
+function ordered(tasks){
+  const timed=tasks.map((t,i)=>[t,i]).filter(x=>x[0].time).sort((a,b)=>a[0].time.localeCompare(b[0].time)||a[1]-b[1]).map(x=>x[0]);
+  let i=0;return tasks.map(t=>t.time?timed[i++]:t);
+}
+const RANK={doing:0,todo:1,done:2};
+const shown=tasks=>ordered(tasks).map((t,i)=>[t,i]).sort((a,b)=>RANK[a[0].status]-RANK[b[0].status]||a[1]-b[1]).map(x=>x[0]);
+// Where a task that just got a time goes: before the next later timed task, else after the last earlier one,
+// else on top. So unless you move things yourself, timed tasks lead the plan in time order.
+function placeTimed(d,t){
+  if(!t.time)return;
+  const rest=d.tasks.filter(x=>x!==t);
+  let at=rest.findIndex(x=>x.time&&x.time>t.time);
+  if(at<0){at=0;rest.forEach((x,i)=>{if(x.time)at=i+1;});}
+  rest.splice(at,0,t);d.tasks=rest;
+}
 const doneOf=(uid,day)=>tasksOf(uid,day).filter(t=>t.status==="done").length;
 function streakOf(uid){let s=0;for(let i=0;i<=BACK;i++){if(doneOf(uid,shift(today,-i)))s++;else if(i>0)break;}return s;}
 
@@ -875,7 +913,7 @@ function calLink(title,key,time,mins,daily){
 
 /* ---------- my writes ---------- */
 async function saveDay(day){
-  const d=myDay(day),key=me.uid+"_"+day;d.updatedAt=Date.now();
+  const d=myDay(day),key=me.uid+"_"+day;d.updatedAt=Date.now();d.tasks=ordered(d.tasks);
   render();
   const s=q[key]||(q[key]={saving:false,dirty:false});
   s.dirty=true;if(s.saving)return;s.saving=true;
@@ -910,7 +948,8 @@ function addTask(raw,len,dateK,timeV){
   const boxDay=/^\d{4}-\d\d-\d\d$/.test(dateK||"")&&dayDiff(dateK)>=0&&dayDiff(dateK)<=AHEAD?dateK:"";
   const key=p.day||boxDay||sel,d=myDay(key);
   if(d.tasks.length>=30){note("30 is the limit for one day. Finish or remove something first.");return;}
-  d.tasks.push({id:Math.random().toString(36).slice(2,10),text:p.text,time:p.time,mins:p.mins,status:"todo",startedAt:0,doneAt:0,pomos:0});
+  const t={id:Math.random().toString(36).slice(2,10),text:p.text,time:p.time,mins:p.mins,status:"todo",startedAt:0,doneAt:0,pomos:0};
+  d.tasks.push(t);placeTimed(d,t);
   $("addHint").textContent=(key===sel?"Added":"Added to "+dayWords(key))+(p.time?" at "+p.time:"")+".";
   saveDay(key);
 }
@@ -919,6 +958,7 @@ function setStatus(id,status){
   if(status==="doing"){d.tasks.forEach(x=>{if(x.status==="doing")x.status="todo";});t.startedAt=Date.now();}
   if(status==="done")t.doneAt=Date.now();
   t.status=status;lastPrompt=Date.now();selfPrompt=false;
+  if(startPrompt===id)startPrompt="";
   // The focus timer belongs to the task in progress: it stops when that task stops or another one starts.
   if(d.focus&&(d.focus.id===id?status!=="doing":status==="doing"))d.focus=null;
   if(status==="done"&&d.tasks.every(x=>x.status==="done")){celebrate();toast("Everything for today is done. Nice work.");}
@@ -931,8 +971,25 @@ function moveTasks(from,to,ids){
   if(b.tasks.length+moving.length>30){note(dayName(to,true)+" is full. Remove something there first.");return;}
   a.tasks=a.tasks.filter(t=>!ids.includes(t.id));
   if(a.focus&&ids.includes(a.focus.id))a.focus=null;
-  moving.forEach(t=>b.tasks.push({id:t.id,text:t.text,time:t.time,mins:t.mins,status:"todo",startedAt:0,doneAt:0,pomos:t.pomos||0}));
+  moving.forEach(t=>{const n={id:t.id,text:t.text,time:t.time,mins:t.mins,status:"todo",startedAt:0,doneAt:0,pomos:t.pomos||0};b.tasks.push(n);placeTimed(b,n);});
   saveDay(from);saveDay(to);
+}
+// Reordering inside one day: put task `id` just before or after task `targetId`.
+function moveTask(day,id,targetId,after){
+  const d=myDay(day);d.tasks=ordered(d.tasks);
+  const t=d.tasks.find(x=>x.id===id);if(!t||id===targetId)return;
+  const was=d.tasks.map(x=>x.id).join(),rest=d.tasks.filter(x=>x!==t),at=rest.findIndex(x=>x.id===targetId);
+  if(at<0)return;
+  rest.splice(at+(after?1:0),0,t);
+  const next=ordered(rest);
+  if(next.map(x=>x.id).join()===was){toast(t.time?"Timed tasks stay in time order. Change its time to move it past another timed task.":"It's already there.",5000);return;}
+  d.tasks=next;saveDay(day);
+}
+function moveBy(day,id,dir){
+  const list=shown(tasksOf(me.uid,day)),i=list.findIndex(x=>x.id===id),n=list[i+dir];
+  if(i<0)return;
+  if(!n||n.status!==list[i].status){toast(dir<0?"It's already first.":"It's already last.");return;}
+  moveTask(day,id,n.id,dir>0);
 }
 
 /* ---------- focus timer (pomodoro) ---------- */
@@ -1003,7 +1060,8 @@ function saveEdit(){
   const from=edit.day,id=edit.id,t=myDay(from).tasks.find(x=>x.id===id),p=parseTask(drafts["e:"+id]||"");
   if(!t){cancelEdit();return;}
   if(!p.text){toast("A task needs a few words.");return;}
-  t.text=p.text.slice(0,120);t.time=p.time;t.mins=p.mins||Math.min(600,Math.max(0,Number(drafts["em:"+id])||0));
+  const hadTime=t.time;
+  t.text=p.text.slice(0,120);t.time=p.time;if(t.time&&t.time!==hadTime)placeTimed(myDay(from),t);t.mins=p.mins||Math.min(600,Math.max(0,Number(drafts["em:"+id])||0));
   delete drafts["e:"+id];delete drafts["em:"+id];edit=null;
   saveDay(from);
   if(p.day&&p.day!==from){moveTasks(from,p.day,[id]);toast("Moved to "+dayWords(p.day)+".");}
@@ -1060,7 +1118,7 @@ function renderProfile(){
 }
 function renderNow(){
   const box=$("now"),tasks=tasksOf(view,today),day=days[view+"_"+today],who=realName(view);
-  const doing=tasks.find(t=>t.status==="doing"),next=tasks.find(t=>t.status==="todo"),dn=doneOf(view,today);
+  const doing=tasks.find(t=>t.status==="doing"),next=shown(tasks).find(t=>t.status==="todo"),dn=doneOf(view,today);   // next = top of the to-do list
   const txt=[],btns=[];let pomo=null;
   const f=ready&&doing?focusOf(view):null,timing=f&&f.id===doing.id&&(f.end===0||f.end>Date.now()||mine());
   pomoEls=null;
@@ -1090,6 +1148,7 @@ function renderNow(){
     }
   }else if(next){
     txt.push(h("span",{class:"label"},mine()?"Pick one thing":who+" hasn't started this yet"),h("span",{class:"what"},next.text));
+    if(next.time||next.mins)txt.push(h("span",{class:"meta"},[next.time&&"Set for "+next.time,next.mins&&next.mins+" min"].filter(Boolean).join(" · ")));
     if(mine())btns.push(h("button",{class:"btn",type:"button",onclick:()=>setStatus(next.id,"doing")},ic("play",20),"Start this now"));
     else txt.push(h("span",{class:"meta"},"Nothing is marked as in progress. A nudge might help."));
   }else if(tasks.length){
@@ -1131,10 +1190,11 @@ function renderDays(){
   $("dayTitle").textContent=(mine()?"":realName(view)+" · ")+dayName(sel,true);
   $("addInput").placeholder=sel===today?"What will you do today?":"What will you do on "+dayName(sel,dayDiff(sel)>6)+"?";
 }
+const refocus=(what,id)=>{const b=$("list").querySelector('[data-'+what+'="'+id+'"]');if(b)b.focus();};
 function renderList(){
   const tasks=tasksOf(view,sel),isToday=sel===today,own=mine();
-  const order={doing:0,todo:1,done:2};
-  const sorted=tasks.map((t,i)=>[t,i]).sort((a,b)=>order[a[0].status]-order[b[0].status]||(a[0].time||"99").localeCompare(b[0].time||"99")||a[1]-b[1]).map(x=>x[0]);
+  const sorted=shown(tasks);
+  const groupSize={};sorted.forEach(t=>{groupSize[t.status]=(groupSize[t.status]||0)+1;});
   const items=sorted.map(t=>{
     const done=t.status==="done";
     const check=own&&isToday
@@ -1159,6 +1219,11 @@ function renderList(){
         h("p",{class:"hint"},"Change the words or the time, and pick a length. Add a day like “fri” at the end to move it.")));
     }
     const more=own&&openMore.has(t.id);
+    // Reordering: drag the handle onto another task, or use the arrow keys on it, or Move up / Move down under More.
+    const movable=own&&groupSize[t.status]>1;
+    const grip=movable?h("span",{class:"act icon grip",role:"button",tabindex:"0",draggable:"true","data-grip":t.id,title:"Drag to reorder",
+      "aria-label":"Move: "+t.text+". Drag it, or press the up or down arrow key.",
+      onkeydown:e=>{if(e.key!=="ArrowUp"&&e.key!=="ArrowDown")return;e.preventDefault();moveBy(sel,t.id,e.key==="ArrowUp"?-1:1);refocus("grip",t.id);}},ic("grip",20)):null;
     const acts=h("div",{class:"acts"},
       own&&isToday&&t.status==="todo"&&h("button",{class:"act",type:"button",onclick:()=>setStatus(t.id,"doing")},ic("play",16),"Start"),
       own&&isToday&&!done&&!(focusOf(me.uid)&&focusOf(me.uid).id===t.id)&&h("button",{class:"act",type:"button","aria-label":"Start a focus timer on: "+t.text,
@@ -1168,8 +1233,11 @@ function renderList(){
         onclick:()=>{if(open)openThreads.delete(key);else openThreads.add(key);renderList();if(!open){const i=$("list").querySelector('[data-key="c:'+key+'"]');if(i)i.focus();}}},
         ic("chat",16),cs.length?cs.length+(cs.length===1?" comment":" comments"):"Comment"),
       own&&h("button",{class:"act",type:"button","data-more":t.id,"aria-expanded":more?"true":"false","aria-label":"More actions for: "+t.text,
-        onclick:()=>{if(more)openMore.delete(t.id);else openMore.add(t.id);renderList();const b=$("list").querySelector('[data-more="'+t.id+'"]');if(b)b.focus();}},ic("dots",16),"More"));
+        onclick:()=>{if(more)openMore.delete(t.id);else openMore.add(t.id);renderList();const b=$("list").querySelector('[data-more="'+t.id+'"]');if(b)b.focus();}},ic("dots",16),"More"),
+      movable&&grip);
     const extra=more?h("div",{class:"acts extra"},
+      movable&&h("button",{class:"act",type:"button","data-up":t.id,onclick:()=>{moveBy(sel,t.id,-1);refocus("up",t.id);}},"Move up"),
+      movable&&h("button",{class:"act",type:"button","data-down":t.id,onclick:()=>{moveBy(sel,t.id,1);refocus("down",t.id);}},"Move down"),
       !done&&h("a",{class:"act",href:calLink(t.text,sel,t.time,t.mins),target:"_blank",rel:"noopener"},ic("calendar",16),"Add to calendar"),
       !done&&sel!==shift(today,AHEAD)&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,shift(sel,1),[t.id])},ic("arrow",16),isToday?"Move to tomorrow":"Push a day later"),
       !isToday&&h("button",{class:"act",type:"button",onclick:()=>moveTasks(sel,today,[t.id])},"Do it today"),
@@ -1187,7 +1255,22 @@ function renderList(){
           h("label",{class:"sr",for:"cmt-"+t.id},"Comment on "+t.text),inp,
           h("button",{class:"btn small primary",type:"submit"},"Send")));
     }
-    return h("li",{class:"task "+t.status},check,h("div",{class:"body"},h("span",{class:"text"},t.text),meta,acts,extra),thread);
+    const li=h("li",{class:"task "+t.status},check,h("div",{class:"body"},h("span",{class:"text"},t.text),meta,acts,extra),thread);
+    if(grip){
+      grip.addEventListener("dragstart",ev=>{planDrag={id:t.id,status:t.status};ev.dataTransfer.effectAllowed="move";
+        try{ev.dataTransfer.setData("text/plain",t.text);ev.dataTransfer.setDragImage(li,24,24);}catch(x){}
+        setTimeout(()=>li.classList.add("dragging"),0);});
+      grip.addEventListener("dragend",()=>{planDrag=null;$("list").querySelectorAll(".dragging,.drop-before,.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after"));});
+    }
+    if(own){
+      // A task can be dropped on another task in the same group: on its top half to go before it, bottom half to go after.
+      const half=ev=>{const r=li.getBoundingClientRect();return ev.clientY>r.top+r.height/2;};
+      const ok=()=>planDrag&&planDrag.id!==t.id&&planDrag.status===t.status;
+      li.addEventListener("dragover",ev=>{if(!ok())return;ev.preventDefault();ev.dataTransfer.dropEffect="move";const a=half(ev);li.classList.toggle("drop-after",a);li.classList.toggle("drop-before",!a);});
+      li.addEventListener("dragleave",ev=>{if(!li.contains(ev.relatedTarget))li.classList.remove("drop-before","drop-after");});
+      li.addEventListener("drop",ev=>{if(!ok())return;ev.preventDefault();const id=planDrag.id,a=half(ev);planDrag=null;moveTask(sel,id,t.id,a);});
+    }
+    return li;
   });
   if(!items.length&&ready){
     if(own){
@@ -1200,9 +1283,12 @@ function renderList(){
     }else items.push(h("li",{class:"empty"},"Nothing planned for this day yet."));
   }
   // Rebuilding the list would drop the caret from an edit or comment box, so put it back afterwards.
-  const list=$("list"),act=document.activeElement,fkey=act&&list.contains(act)&&act.dataset?act.dataset.key:"",caret=fkey?act.selectionStart:0;
+  // The same goes for a button the keyboard is on (the move handle, More, Edit), found again by its data attribute.
+  const list=$("list"),act=document.activeElement,inList=act&&list.contains(act)&&act.dataset,fkey=inList?act.dataset.key:"",caret=fkey?act.selectionStart:0;
+  const held=inList&&!fkey?["grip","up","down","more","edit"].find(k=>act.dataset[k]):"",heldSel=held?'[data-'+held+'="'+act.dataset[held]+'"]':"";
   list.replaceChildren(...items);
   if(fkey){const el=list.querySelector('[data-key="'+fkey+'"]');if(el){el.focus();try{el.setSelectionRange(caret,caret);}catch(e){}}}
+  else if(heldSel){const el=list.querySelector(heldSel);if(el)el.focus();}
   const total=tasks.length,doneN=tasks.filter(t=>t.status==="done").length;
   const fill={done:0,doing:1,todo:2};
   $("meter").replaceChildren(...(total?sorted.slice().sort((a,b)=>fill[a.status]-fill[b.status]):[{status:"todo"}]).map(t=>h("i",{class:t.status})));
@@ -1333,6 +1419,8 @@ function renderBanner(){
   const b=$("banner");
   const pending=nudges.filter(n=>n.to===me.uid&&!n.reply);
   const doing=tasksOf(me.uid,today).find(t=>t.status==="doing");
+  const due=startPrompt?tasksOf(me.uid,today).find(t=>t.id===startPrompt&&t.status==="todo"):null;
+  if(!due)startPrompt="";
   document.title=pending.length?"("+pending.length+") "+(pending[0].kind==="cheer"?"Cheer!":"Nudge!")+" · Pact":"Pact · Pair & Act";
   if(pending.length){
     // A nudge asks "how is it going?", a cheer just needs a thank-you, so each kind has its own replies.
@@ -1348,6 +1436,16 @@ function renderBanner(){
       pending.length>1?h("span",null,"+"+(pending.length-1)+" more waiting"):null,
       h("div",{class:"row"},...Object.keys(set).map(c=>h("button",{class:"btn",type:"button",onclick:answer(c)},set[c]))));
     b.classList.toggle("cheer",cheer);
+    b.hidden=false;
+  }else if(due){
+    // A timed task has reached its start time: one tap starts it, or push it back five minutes.
+    b.classList.remove("cheer");
+    const close=()=>{startPrompt="";lastPrompt=Date.now();renderBanner();};
+    put(b,h("strong",null,ic("clock",24),h("span",null,"Time to start: "+due.text+" ("+due.time+")")),
+      h("div",{class:"row"},
+        h("button",{class:"btn",type:"button",onclick:()=>setStatus(due.id,"doing")},"Start now"),
+        h("button",{class:"btn",type:"button",onclick:()=>{startSnooze={id:due.id,at:Date.now()+5*60000};close();toast("I'll ask again in 5 minutes.");}},"In 5 minutes"),
+        h("button",{class:"btn",type:"button",onclick:close},"Not now")));
     b.hidden=false;
   }else if(selfPrompt){
     b.classList.remove("cheer");
@@ -1499,7 +1597,7 @@ function renderCalDay(){
 function retime(day,id,time){
   const d=myDay(day),t=d.tasks.find(x=>x.id===id);
   if(!t||t.time===time){renderCalendar();return;}
-  t.time=time;saveDay(day);
+  t.time=time;placeTimed(d,t);saveDay(day);
   toast("“"+t.text.slice(0,40)+"” "+(time?"is now at "+time+".":"has no set time now."));
 }
 function addFromCalendar(k){
@@ -1509,7 +1607,8 @@ function addFromCalendar(k){
   const d=myDay(k);
   if(d.tasks.length>=30){note("30 is the limit for one day. Finish or remove something first.");return;}
   // A calendar entry is an ordinary task with a time, so it shows up in the plan for that day too.
-  d.tasks.push({id:Math.random().toString(36).slice(2,10),text:text,time:time,mins:len,status:"todo",startedAt:0,doneAt:0,pomos:0});
+  const t={id:Math.random().toString(36).slice(2,10),text:text,time:time,mins:len,status:"todo",startedAt:0,doneAt:0,pomos:0};
+  d.tasks.push(t);placeTimed(d,t);
   calAdd=null;delete drafts["ca:text"];delete drafts["ca:time"];delete drafts["ca:len"];
   saveDay(k);toast("Added to your plan for "+dayWords(k)+".");
 }
@@ -1589,8 +1688,60 @@ async function copyText(text,statusEl,okMsg){
 }
 
 /* ---------- nudges ---------- */
-function beep(){if(!audio)return;try{const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=660;g.gain.value=.08;o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.25);}catch(e){}}
-function popup(title,body){try{if("Notification" in window&&Notification.permission==="granted"&&document.hidden)new Notification(title,{body:body||""});}catch(e){}}
+// Sounds are short sine notes, each [frequency, starts after (s), lasts (s), volume], faded in and out so they don't click.
+function play(notes){
+  if(!audio)return;
+  try{
+    if(audio.state==="suspended")audio.resume().catch(()=>{});
+    notes.forEach(([f,at,dur,vol])=>{
+      const o=audio.createOscillator(),g=audio.createGain(),t0=audio.currentTime+at;
+      o.type="sine";o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+      o.connect(g);g.connect(audio.destination);o.start(t0);o.stop(t0+dur+.05);
+    });
+  }catch(e){}
+}
+function beep(){play([[660,0,.28,.1]]);}
+function chime(){play([[523.25,0,.35,.16],[659.25,.18,.35,.16],[783.99,.36,.75,.18]]);}   // three rising notes: time to start
+function soundOn(){try{audio=new (window.AudioContext||window.webkitAudioContext)();return true;}catch(e){audio=null;return false;}}
+// A notification on the device. Skipped while you are looking at the page (the banner and toast are enough),
+// unless forced. Phones only allow notifications through the service worker, so that route is tried first.
+function popup(title,body,tag,force){
+  try{
+    if(!("Notification" in window)||Notification.permission!=="granted")return;
+    if(!force&&!document.hidden&&document.hasFocus())return;
+    const o={body:body||"",tag:tag||"pact",renotify:true,icon:"icon-192.png"};
+    if(swReg&&swReg.showNotification)swReg.showNotification(title,o).catch(()=>{});
+    else new Notification(title,o);
+  }catch(e){}
+}
+/* ---------- timed tasks: heads-up before, chime and prompt at the start ---------- */
+function fireStart(t){
+  startPrompt=t.id;freshBanner=true;chime();
+  popup("Time to start",t.text+" ("+t.time+")","pact-start");renderBanner();
+}
+function checkTimed(){
+  if(!ready||!me)return;
+  if(startSnooze&&Date.now()>=startSnooze.at){
+    const t=tasksOf(me.uid,today).find(x=>x.id===startSnooze.id);startSnooze=null;
+    if(t&&t.status==="todo")fireStart(t);
+  }
+  const lead=store.get("pact.lead","10");if(lead==="")return;
+  const L=Number(lead)||0,n=new Date(),nowM=n.getHours()*60+n.getMinutes();
+  tasksOf(me.uid,today).forEach(t=>{
+    if(!t.time||t.status!=="todo")return;
+    const start=Number(t.time.slice(0,2))*60+Number(t.time.slice(3)),key=today+"|"+t.id+"|"+t.time;
+    if(L&&nowM>=start-L&&nowM<start&&!reminded.has(key+"|lead")){
+      reminded.add(key+"|lead");beep();
+      const msg="In "+(start-nowM)+" min: "+t.text+" ("+t.time+")";
+      toast(msg,9000);popup("Coming up",msg,"pact-lead");
+    }
+    // A background tab is only woken about once a minute, so the start gets a two-minute window.
+    if(nowM>=start&&nowM<=start+2&&!reminded.has(key+"|start")){
+      reminded.add(key+"|start");reminded.add(key+"|lead");fireStart(t);
+    }
+  });
+}
 async function sendNudge(kind){
   const status=$("buddyStatus"),input=$("nudgeMsg"),msg=input.value.trim().slice(0,140),to=view;
   if(to===me.uid)return;
@@ -1700,6 +1851,16 @@ function wire(){
       start();
     }catch(err){const m=$("homeMsg");m.textContent="Couldn't create the circle. Check that the database rules from the README are published, then try again.";m.hidden=false;}
   });
+  // The Home Screen app has no address bar, so an invite link can also be pasted in.
+  $("pasteForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const raw=String($("pasteLink").value).trim();let code=raw;
+    try{code=new URL(raw).searchParams.get("g")||"";}catch(err){}
+    if(!/^[A-Za-z0-9]{10,40}$/.test(code)){const m=$("homeMsg");m.textContent="That doesn't look like an invite link. It ends in ?g= and a code.";m.hidden=false;return;}
+    $("pasteLink").value="";
+    try{history.replaceState(null,"","?g="+code);}catch(err){}
+    enter();
+  });
   $("joinForm").addEventListener("submit",async e=>{
     e.preventDefault();
     const name=cleanName($("joinName").value);if(!name)return;
@@ -1770,24 +1931,47 @@ function wire(){
     const raw=String(e.target.value).trim();
     if(raw===""){store.set("pact.lead","");toast("Task reminders are off.");return;}
     const v=Math.min(120,Math.max(0,Math.round(Number(raw)||0)));e.target.value=String(v);store.set("pact.lead",String(v));
-    toast(v?"You'll be reminded "+v+(v===1?" minute":" minutes")+" before a timed task.":"You'll be reminded when a timed task starts.");
+    toast(v?"You'll get a heads-up "+v+(v===1?" minute":" minutes")+" before a timed task, and again when it starts.":"You'll be reminded when a timed task starts.");
   });
   $("selfTest").addEventListener("click",()=>{
-    selfPrompt=true;freshBanner=true;beep();popup("Still on it?","This is a test from Pact");renderBanner();
+    selfPrompt=true;freshBanner=true;chime();popup("Pact test","This is what a reminder looks like.","pact-test",true);renderBanner();
     $("banner").scrollIntoView({block:"center"});
+    const off=[];
+    if(!audio)off.push("sounds are off");
+    if(!("Notification" in window)||Notification.permission!=="granted")off.push("notifications are off");
+    toast(off.length?"Banner shown. Nothing else, because "+off.join(" and ")+".":"Banner, chime and notification sent.",6000);
   });
   $("calPref").value=store.get("pact.cal","google");
   $("calPref").addEventListener("change",e=>{store.set("pact.cal",e.target.value);render();});
-  $("soundBtn").addEventListener("click",e=>{
-    if(audio){audio=null;e.target.textContent="Turn on";e.target.setAttribute("aria-pressed","false");return;}
-    try{audio=new (window.AudioContext||window.webkitAudioContext)();beep();e.target.textContent="Turn off";e.target.setAttribute("aria-pressed","true");}
-    catch(err){audio=null;e.target.textContent="Not available here";e.target.disabled=true;}
+  // The sound choice is remembered. A browser only lets a page make sound after you have clicked or typed
+  // on it, so a remembered "on" starts silent and wakes up with the first tap or key press.
+  const sb=$("soundBtn"),showSound=()=>{sb.textContent=audio?"Turn off":"Turn on";sb.setAttribute("aria-pressed",audio?"true":"false");};
+  const wake=()=>{if(audio&&audio.state==="suspended")audio.resume().catch(()=>{});};
+  document.addEventListener("pointerdown",wake);document.addEventListener("keydown",wake);
+  if(store.get("pact.sound","")==="1"){soundOn();showSound();}
+  sb.addEventListener("click",()=>{
+    if(audio){try{audio.close();}catch(e){}audio=null;store.set("pact.sound","0");showSound();return;}
+    if(soundOn()){store.set("pact.sound","1");chime();showSound();}
+    else{sb.textContent="Not available here";sb.disabled=true;}
   });
-  const nb=$("notifBtn");
-  if(!("Notification" in window)){nb.textContent="Not available here";nb.disabled=true;}
+  // Notifications. Phones show them only through a service worker; iPhones and iPads only once the site
+  // has been added to the Home Screen.
+  if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(()=>navigator.serviceWorker.ready).then(r=>{swReg=r;}).catch(()=>{});
+  const nb=$("notifBtn"),hint=$("notifHint");
+  const say=t=>{hint.textContent=t;hint.hidden=!t;};
+  if(!("Notification" in window)){
+    nb.textContent="Not available here";nb.disabled=true;
+    const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+    if(ios&&!navigator.standalone)say("On an iPhone or iPad, notifications work after you add Pact to the Home Screen: copy your invite link, press Share, then Add to Home Screen, open Pact from there, sign in with Google and paste the link.");
+  }
   else if(Notification.permission==="granted"){nb.textContent="On";nb.disabled=true;}
+  else if(Notification.permission==="denied"){nb.textContent="Blocked";nb.disabled=true;say("Notifications for this site are blocked in your browser's site settings. Allow them there, then reload.");}
   nb.addEventListener("click",async()=>{
-    try{const p=await Notification.requestPermission();nb.textContent=p==="granted"?"On":"Blocked in browser settings";nb.disabled=true;}catch(e){nb.textContent="Not available here";nb.disabled=true;}
+    try{
+      const p=await Notification.requestPermission();nb.disabled=p!=="default";
+      if(p==="granted"){nb.textContent="On";say("");popup("Notifications are on","Pact will tell you when a timed task starts.","pact-test",true);}
+      else if(p==="denied"){nb.textContent="Blocked";say("Notifications for this site are blocked in your browser's site settings. Allow them there, then reload.");}
+    }catch(e){nb.textContent="Not available here";nb.disabled=true;}
   });
   setInterval(()=>{
     // "today" is fixed when the page loads. A tab left open past midnight starts over on the new day.
@@ -1799,24 +1983,11 @@ function wire(){
       const on=tasksOf(me.uid,today).find(t=>t.status==="doing");
       selfPrompt=true;freshBanner=true;beep();popup(toneOf(me.uid).self(on?on.text:""),"Quick check from Pact");renderBanner();
     }
-    // Reminder for my own timed tasks: once each, shortly before (or at) the start, while the page is open.
-    const lead=store.get("pact.lead","10");
-    if(lead!==""){
-      const L=Number(lead)||0,n=new Date(),nowM=n.getHours()*60+n.getMinutes();
-      tasksOf(me.uid,today).forEach(t=>{
-        if(!t.time||t.status!=="todo")return;
-        const start=Number(t.time.slice(0,2))*60+Number(t.time.slice(3)),key=today+"|"+t.id+"|"+t.time;
-        if(nowM>=start-L&&nowM<=start+1&&!reminded.has(key)){
-          reminded.add(key);beep();
-          const msg=(start-nowM>0?"In "+(start-nowM)+" min: ":"Starting now: ")+t.text+" ("+t.time+")";
-          toast(msg,9000);popup("Coming up",msg);
-        }
-      });
-    }
     // Refresh "12 min in", unless the keyboard is on a button inside the card (rebuilding would drop it).
     if(!$("now").contains(document.activeElement))renderNow();
   },30000);
   setInterval(tickFocus,1000);
+  setInterval(checkTimed,5000);   // timed tasks are checked often so the start chime is on time
 }
 async function signIn(fn){
   const m=$("signinMsg");m.textContent="";
